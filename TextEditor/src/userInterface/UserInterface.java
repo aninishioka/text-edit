@@ -234,10 +234,12 @@ public class UserInterface {
 	}
 	
 	public void handleUndo() {
+		if (history.undoHistoryEmpty()) return;
 		HistoryNode hn = history.undo();
 		if (hn.getType() == EditType.ADD_CHAR) {
 			
 		} else if (hn.getType() == EditType.DEL_CHAR) {
+			
 			
 		}
 	}

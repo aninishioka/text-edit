@@ -19,22 +19,22 @@ public class EditHistory {
 	
 	public void recordEdit(EditType type, Text t) {
 		checkSize(undoStack);
-		undoStack.push(new HistoryNode(type, t));
+		undoStack.addLast(new HistoryNode(type, t));
 	}
 	
 	public void recordEdit(EditType type, boolean inc) {
 		checkSize(undoStack);
-		undoStack.push(new HistoryNode(type, inc));
+		undoStack.addLast(new HistoryNode(type, inc));
 	}
 	
 	public void recordUndo(EditType type, Text t) {
 		checkSize(redoStack);
-		redoStack.push(new HistoryNode(type, t));
+		redoStack.addLast(new HistoryNode(type, t));
 	}
 	
 	public void recordUndo(EditType type, boolean inc) {
 		checkSize(redoStack);
-		redoStack.push(new HistoryNode(type, inc));
+		redoStack.addLast(new HistoryNode(type, inc));
 	}
 	
 	private void checkSize(Deque<HistoryNode> stack) {
