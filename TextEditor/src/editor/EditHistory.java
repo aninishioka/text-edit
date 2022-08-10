@@ -27,14 +27,9 @@ public class EditHistory {
 		undoStack.addLast(new HistoryNode(type, inc));
 	}
 	
-	public void recordUndo(EditType type, Text t) {
+	public void recordUndo(HistoryNode undo) {
 		checkSize(redoStack);
-		redoStack.addLast(new HistoryNode(type, t));
-	}
-	
-	public void recordUndo(EditType type, boolean inc) {
-		checkSize(redoStack);
-		redoStack.addLast(new HistoryNode(type, inc));
+		redoStack.addLast(undo);
 	}
 	
 	private void checkSize(Deque<HistoryNode> stack) {
@@ -57,5 +52,9 @@ public class EditHistory {
 	
 	public boolean redoHistoryEmpty() {
 		return redoStack.size() == 0;
+	}
+	
+	public void clearRedoHistory() {
+		redoStack.clear();
 	}
 }

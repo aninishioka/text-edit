@@ -66,33 +66,6 @@ public class UserInterface {
 		stage.setScene(scene);
 	}
 	
-	private void setEventHandlers() {
-		scene.addEventHandler(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
-
-			@Override
-			public void handle(KeyEvent event) {
-				//KeyEventHandler handler = new KeyEventHandler(scene,textRoot,tb,cursor,font);
-				//handler.handleTextInputEvent(event);
-				handleTextInputEvent(event);
-			}
-			
-		});
-		
-		scene.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-
-			@Override
-			public void handle(KeyEvent event) {
-				//KeyEventHandler handler = new KeyEventHandler(scene,textRoot,tb,cursor,font);
-				//handler.handleKeyEvent(event);
-				handleKeyEvent(event);
-			}
-			
-		});
-		
-		
-		//root.addEventHandler(MouseEvent.MOUSE_RELEASED, new MouseEventHandler());
-	}
-	 
 	private void drawText() {
 		root.getChildren().add(textRoot);
 		textRoot.setLayoutX(MARGIN);
@@ -111,102 +84,47 @@ public class UserInterface {
 		
 	}
 	
+	private void setEventHandlers() {
+		scene.addEventHandler(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				handleTextInputEvent(event);
+			}
+			
+		});
+		
+		scene.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				handleKeyEvent(event);
+			}
+			
+		});
+		
+		
+		//root.addEventHandler(MouseEvent.MOUSE_RELEASED, new MouseEventHandler());
+	}
+	
 	public void handleTextInputEvent(KeyEvent event) {
 		if (event.getCharacter().length() == 1 && !event.isShortcutDown()) {
 			Text t = new Text(event.getCharacter());
 			
 			history.recordEdit(EditType.ADD_CHAR, t);
+			history.clearRedoHistory();
 			
-			setTextPosition(t);
-			
-			setCursorPosition(t);
+			addText(t);
 		} 
 		event.consume();
 	}
-
-	public void handleKeyEvent(KeyEvent event) {
-		if (event.getCode() == KeyCode.BACK_SPACE) {
-			handleBackspace(event);
-		} else if (event.isShortcutDown()) {
-			handleShortCut(event);
-		} else if (event.getCharacter().length() == 0) {
-			handleArrowInputs(event);
-		}
-		event.consume();
+	
+	public void addText(Text t) {
+		setText(t);
+		setCursorPosition(t);
 	}
 	
-	public void handleShortCut(KeyEvent event) {
-		KeyCombination incFont = new KeyCodeCombination(KeyCode.ADD, KeyCombination.META_DOWN);
-		KeyCombination incFont60Keeb = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.META_DOWN);
-		KeyCombination decFont = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.META_DOWN);
-		KeyCombination undo = new KeyCodeCombination(KeyCode.Z, KeyCombination.META_DOWN);
-		KeyCombination redo = new KeyCodeCombination(KeyCode.Y, KeyCombination.META_DOWN);
-		KeyCombination copy = new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN);
-		KeyCombination paste = new KeyCodeCombination(KeyCode.V, KeyCombination.META_DOWN);
-		KeyCombination cut = new KeyCodeCombination(KeyCode.X, KeyCombination.META_DOWN);
-		
-		if (incFont.match(event) || incFont60Keeb.match(event)) {
-			changeFontSize("inc");
-		} else if (decFont.match(event)) {
-			changeFontSize("dec");
-		} else if (undo.match(event)) {
-			handleUndo();
-		} else if (redo.match(event)) {
-			
-		} else if (copy.match(event) || cut.match(event)) {
-			
-		} else if (paste.match(event)) {
-			
-		}
-	}
-	
-	private void changeFontSize(String incOrDec) {
-		if (incOrDec == "inc") fontSize += 4;
-		else if (incOrDec == "dec" && fontSize > 4) fontSize -= 4;
-		
-		font = new Font(fontName, fontSize);
-		
-		TextBufferIterator iterator = tb.iterator();
-		
-		while (iterator.hasNext()) {
-			Text t = iterator.next().getValue();
-			t.setFont(font);
-		}
-	}
-	
-	//*** if this shortens word, may need to move word up !! 
-	public void handleBackspace(KeyEvent event) {
-		if (textRoot.getChildren().size() == 0) return;
-		
-		Text toDelete = tb.getCurTextObject();
-		tb.delChar();
-		
-		history.recordEdit(EditType.DEL_CHAR, toDelete);
-		
-		Text prev = tb.getCurTextObject(); 
-		
-		if (toDelete.getText().charAt(0) == '\r') {
-			cursor.updatePos(Math.ceil(prev.getX()+Utils.getTextWidth(prev)), prev.getY());
-		} else {
-			cursor.updatePos(toDelete.getX(), toDelete.getY());
-		}
-		
-		textRoot.getChildren().remove(toDelete);
-	}
-	
-	public void handleArrowInputs(KeyEvent event) {
-		if (event.getCode() == KeyCode.RIGHT) {
-			
-		} else if (event.getCode() == KeyCode.LEFT) {
-			
-		} else if (event.getCode() == KeyCode.UP) {
-			
-		} else if (event.getCode() == KeyCode.DOWN) {
-			
-		}
-	}
-	
-	public void setTextPosition(Text t) {
+	public void setText(Text t) {
 		//***have to add if adding spaces while at rightmost pos of screen
 		t.setTextOrigin(VPos.TOP);
 		t.setFont(font);
@@ -232,16 +150,124 @@ public class UserInterface {
 			cursor.updatePos(Math.ceil(t.getX()+Utils.getTextWidth(t)), t.getY());
 		}
 	}
+
+	public void handleKeyEvent(KeyEvent event) {
+		if (event.getCode() == KeyCode.BACK_SPACE) {
+			handleBackspace(event);
+			history.clearRedoHistory();
+		} else if (event.isShortcutDown()) {
+			handleShortCut(event);
+		} else if (event.getCharacter().length() == 0) {
+			handleArrowInputs(event);
+		}
+		event.consume();
+	}
+	
+	public void handleShortCut(KeyEvent event) {
+		KeyCombination incFont = new KeyCodeCombination(KeyCode.ADD, KeyCombination.META_DOWN);
+		KeyCombination incFont60Keeb = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.META_DOWN);
+		KeyCombination decFont = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.META_DOWN);
+		KeyCombination undo = new KeyCodeCombination(KeyCode.Z, KeyCombination.META_DOWN);
+		KeyCombination redo = new KeyCodeCombination(KeyCode.Y, KeyCombination.META_DOWN);
+		KeyCombination copy = new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN);
+		KeyCombination paste = new KeyCodeCombination(KeyCode.V, KeyCombination.META_DOWN);
+		KeyCombination cut = new KeyCodeCombination(KeyCode.X, KeyCombination.META_DOWN);
+		
+		if (incFont.match(event) || incFont60Keeb.match(event)) {
+			changeFontSize("inc");
+		} else if (decFont.match(event)) {
+			changeFontSize("dec");
+		} else if (undo.match(event)) {
+			handleUndo();
+		} else if (redo.match(event)) {
+			handleRedo();
+		} else if (copy.match(event) || cut.match(event)) {
+			
+		} else if (paste.match(event)) {
+			
+		}
+	}
+	
+	private void changeFontSize(String incOrDec) {
+		if (incOrDec == "inc") fontSize += 4;
+		else if (incOrDec == "dec" && fontSize > 4) fontSize -= 4;
+		
+		font = new Font(fontName, fontSize);
+		
+		TextBufferIterator iterator = tb.iterator();
+		
+		while (iterator.hasNext()) {
+			Text t = iterator.next().getValue();
+			t.setFont(font);
+		}
+	}
+	
+	//*** if this shortens word, may need to move word up !! 
+	public void handleBackspace(KeyEvent event) {
+		if (textRootEmpty()) return;
+		deleteText();
+		Text toDelete = tb.getCurTextObject();
+		history.recordEdit(EditType.DEL_CHAR, toDelete);
+	}
+	
+	public void deleteText() {
+		if (textRootEmpty()) return;
+		
+		Text toDelete = tb.getCurTextObject();
+		tb.delChar();
+		
+		Text prev = tb.getCurTextObject(); 
+		
+		if (toDelete.getText().charAt(0) == '\r') {
+			cursor.updatePos(Math.ceil(prev.getX()+Utils.getTextWidth(prev)), prev.getY());
+		} else {
+			cursor.updatePos(toDelete.getX(), toDelete.getY());
+		}
+		
+		textRoot.getChildren().remove(toDelete);
+	}
+	
+	public void handleArrowInputs(KeyEvent event) {
+		if (event.getCode() == KeyCode.RIGHT) {
+			
+		} else if (event.getCode() == KeyCode.LEFT) {
+			
+		} else if (event.getCode() == KeyCode.UP) {
+			
+		} else if (event.getCode() == KeyCode.DOWN) {
+			
+		}
+	}
 	
 	public void handleUndo() {
 		if (history.undoHistoryEmpty()) return;
-		HistoryNode hn = history.undo();
-		if (hn.getType() == EditType.ADD_CHAR) {
-			
-		} else if (hn.getType() == EditType.DEL_CHAR) {
-			
+		HistoryNode action = history.undo();
+		if (action.getType() == EditType.ADD_CHAR) {
+			if (textRootEmpty()) return;
+			deleteText();
+			history.recordUndo(action);
+		} else if (action.getType() == EditType.DEL_CHAR) {
+			Text t = action.getText();
+			addText(t);
 			
 		}
+	}
+	
+	public void handleRedo() {
+		if (history.redoHistoryEmpty()) return;
+		
+		HistoryNode action = history.redo();
+		
+		if (action.getType() == EditType.ADD_CHAR) {
+			Text t = action.getText();
+			addText(t);
+		} else if (action.getType() == EditType.DEL_CHAR) {
+			deleteText();
+		}
+ 	}
+	
+	public boolean textRootEmpty() {
+		return textRoot.getChildren().size() == 0;
 	}
 	
 }
