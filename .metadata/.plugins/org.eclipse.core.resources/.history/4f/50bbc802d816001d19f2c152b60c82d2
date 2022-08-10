@@ -1,0 +1,11 @@
+package userInterface;
+
+import javafx.scene.text.Text;
+
+public class Utils {
+	public double getTextWidth(Text t) {
+		t.getLayoutBounds().getWidth();
+	}
+	
+	public double  getFontHeight()
+}

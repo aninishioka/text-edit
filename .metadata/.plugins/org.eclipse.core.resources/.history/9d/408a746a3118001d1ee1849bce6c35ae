@@ -1,0 +1,106 @@
+package userInterface;
+
+import editor.TextBuffer;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.Transition;
+import javafx.event.EventHandler;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+
+public class UserInterface {
+	final private Stage stage;
+	final private Group root;
+	final private Group textRoot;
+	final private Scene scene;
+	final private Cursor cursor;
+	final private TextBuffer tb;
+	final private static int INITIAL_WIDTH = 500;
+	final private static int INITIAL_HEIGHT = 500;
+	final private static int INITIAL_FONT_SIZE = 12;
+	final private static int MARGIN = 5;
+	final private static String INITIAL_FONT = "Verdana";
+	private int width = INITIAL_WIDTH;
+	private int height = INITIAL_HEIGHT;
+	private Font font = new Font(INITIAL_FONT, INITIAL_FONT_SIZE);
+	
+	
+	public UserInterface(Stage stage, TextBuffer tb) {
+		this.stage = stage;
+		this.root = new Group();
+		this.scene = new Scene(root, width, height);
+		this.textRoot = new Group();
+		this.cursor = initCursor();
+		this.tb = tb;
+		
+		initInterface();
+		
+	}
+	
+	private void initInterface() {
+		drawBackground();
+		drawCursor();
+		drawText();
+		drawScrollBar();
+		setEventHandlers();
+		stage.show();
+	}
+
+	private void drawBackground() {
+		stage.setScene(scene);
+	}
+	
+	private void setEventHandlers() {
+		scene.addEventHandler(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				KeyEventHandler handler = new KeyEventHandler(scene,textRoot,tb,cursor,font);
+				handler.handleTextInputEvent(event);
+			}
+			
+		});
+		
+		scene.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				KeyEventHandler handler = new KeyEventHandler(textRoot,tb,cursor,font);
+				handler.handleKeyEvent(event);
+			}
+			
+		});
+		
+		
+		//root.addEventHandler(MouseEvent.MOUSE_RELEASED, new MouseEventHandler());
+	}
+	 
+	private void drawText() {
+		root.getChildren().add(textRoot);
+		textRoot.setLayoutX(MARGIN);
+	}
+	
+	private Cursor initCursor() {
+		Cursor c = new Cursor(Utils.getFontHeight(font));
+		return c;
+	}
+	
+	private void drawCursor() {
+		root.getChildren().add(cursor.getCursor());
+	}
+	
+	private void drawScrollBar() {
+		
+	}
+	
+	
+}

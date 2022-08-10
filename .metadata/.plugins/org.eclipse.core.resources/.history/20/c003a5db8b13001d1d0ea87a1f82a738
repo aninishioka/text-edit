@@ -1,0 +1,15 @@
+package editor;
+
+import javafx.scene.text.Text;
+
+public class BgLogic {
+	TextBuffer tb;
+	
+	public BgLogic() {
+		tb = new TextBuffer();
+	}
+	
+	public void handleTextInput(Text t) {
+		tb.addChar(t);
+	}
+}

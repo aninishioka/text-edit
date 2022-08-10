@@ -1,0 +1,14 @@
+package editor;
+
+import javafx.scene.text.Text;
+
+public class HistoryNode {
+	private enum EditType {
+		UNDO,
+		REDO
+	}
+	
+	private EditType editType;
+	private Text t;
+	
+}

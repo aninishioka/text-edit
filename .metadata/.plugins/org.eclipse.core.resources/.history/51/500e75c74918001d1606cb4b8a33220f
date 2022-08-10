@@ -1,0 +1,25 @@
+package editor;
+
+import java.util.Iterator;
+
+public class TextBufferIterator implements Iterator<BufferNode> {
+	BufferNode sentinel;
+	BufferNode next;
+	
+	public TextBufferIterator(BufferNode sentinel) {
+		this.sentinel = sentinel;
+		this.next = sentinel.getNext();
+	}
+	
+	@Override
+	public boolean hasNext() {
+		return next != sentinel;
+	}
+
+	@Override
+	public Object next() {
+		if (!hasNext()) throw new NoSuchElementException("No next element.");
+		return null;
+	}
+
+}

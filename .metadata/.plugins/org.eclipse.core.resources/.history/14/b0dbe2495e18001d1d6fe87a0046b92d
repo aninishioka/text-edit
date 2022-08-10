@@ -1,0 +1,23 @@
+package editor;
+
+import javafx.scene.text.Text;
+
+public class HistoryNode {
+	private EditType editType;
+	private Text text;
+	
+	public HistoryNode(EditType type, Text t) {
+		this.editType = type;
+		this.text = t;
+	}
+	
+	public EditType getType() {
+		return editType;
+	}
+	
+	public Text getText() {
+		return text;
+	}
+	
+	public 
+ }

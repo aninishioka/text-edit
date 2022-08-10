@@ -1,0 +1,236 @@
+package userInterface;
+
+import editor.EditHistory;
+import editor.TextBuffer;
+import editor.TextBufferIterator;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.Transition;
+import javafx.event.EventHandler;
+import javafx.geometry.VPos;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+
+public class UserInterface {
+	final private Stage stage;
+	final private Group root;
+	final private Group textRoot;
+	final private Scene scene;
+	final private Cursor cursor;
+	final private TextBuffer tb;
+	final private static int INITIAL_WIDTH = 500;
+	final private static int INITIAL_HEIGHT = 500;
+	final private static int INITIAL_FONT_SIZE = 12;
+	final private static int MARGIN = 5;
+	final private static String INITIAL_FONT_NAME = "Verdana";
+	private int width = INITIAL_WIDTH;
+	private int height = INITIAL_HEIGHT;
+	private Font font = new Font(INITIAL_FONT_NAME, INITIAL_FONT_SIZE);
+	private String fontName = INITIAL_FONT_NAME;
+	private int fontSize = INITIAL_FONT_SIZE;
+	private int maxX;
+	private EditHistory history;
+	
+	
+	public UserInterface(Stage stage, TextBuffer tb) {
+		this.stage = stage;
+		this.root = new Group();
+		this.scene = new Scene(root, width, height);
+		this.textRoot = new Group();
+		this.cursor = initCursor();
+		this.tb = tb;
+		this.maxX = width - MARGIN;
+		this.history = new EditHistory();
+		
+		initInterface();
+		
+	}
+	
+	private void initInterface() {
+		drawBackground();
+		drawCursor();
+		drawText();
+		drawScrollBar();
+		setEventHandlers();
+		stage.show();
+	}
+
+	private void drawBackground() {
+		stage.setScene(scene);
+	}
+	
+	private void setEventHandlers() {
+		scene.addEventHandler(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				//KeyEventHandler handler = new KeyEventHandler(scene,textRoot,tb,cursor,font);
+				//handler.handleTextInputEvent(event);
+				handleTextInputEvent(event);
+			}
+			
+		});
+		
+		scene.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				//KeyEventHandler handler = new KeyEventHandler(scene,textRoot,tb,cursor,font);
+				//handler.handleKeyEvent(event);
+				handleKeyEvent(event);
+			}
+			
+		});
+		
+		
+		//root.addEventHandler(MouseEvent.MOUSE_RELEASED, new MouseEventHandler());
+	}
+	 
+	private void drawText() {
+		root.getChildren().add(textRoot);
+		textRoot.setLayoutX(MARGIN);
+	}
+	
+	private Cursor initCursor() {
+		Cursor c = new Cursor(Utils.getFontHeight(font));
+		return c;
+	}
+	
+	private void drawCursor() {
+		root.getChildren().add(cursor.getCursor());
+	}
+	
+	private void drawScrollBar() {
+		
+	}
+	
+	public void handleTextInputEvent(KeyEvent event) {
+		if (event.getCharacter().length() == 1 && !event.isShortcutDown()) {
+			Text t = new Text(event.getCharacter());
+			
+			setTextPosition(t);
+			
+			setCursorPosition(t);
+		} 
+		event.consume();
+	}
+
+	public void handleKeyEvent(KeyEvent event) {
+		if (event.getCode() == KeyCode.BACK_SPACE) {
+			handleBackspace(event);
+		} else if (event.isShortcutDown()) {
+			handleShortCut(event);
+		} else if (event.getCharacter().length() == 0) {
+			handleArrowInputs(event);
+		}
+		event.consume();
+	}
+	
+	public void handleShortCut(KeyEvent event) {
+		KeyCombination incFont = new KeyCodeCombination(KeyCode.ADD, KeyCombination.META_DOWN);
+		KeyCombination incFont60Keeb = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.META_DOWN);
+		KeyCombination decFont = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.META_DOWN);
+		KeyCombination undo = new KeyCodeCombination(KeyCode.Z, KeyCombination.META_DOWN);
+		KeyCombination redo = new KeyCodeCombination(KeyCode.Y, KeyCombination.META_DOWN);
+		KeyCombination copy = new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN);
+		KeyCombination paste = new KeyCodeCombination(KeyCode.V, KeyCombination.META_DOWN);
+		KeyCombination cut = new KeyCodeCombination(KeyCode.X, KeyCombination.META_DOWN);
+		
+		if (incFont.match(event) || incFont60Keeb.match(event)) {
+			changeFontSize("inc");
+		} else if (decFont.match(event)) {
+			changeFontSize("dec");
+		} else if (undo.match(event) || redo.match(event)) {
+			
+		} else if (copy.match(event) || cut.match(event)) {
+			
+		} else if (paste.match(event)) {
+			
+		}
+	}
+	
+	private void changeFontSize(String incOrDec) {
+		if (incOrDec == "inc") fontSize += 4;
+		else if (incOrDec == "dec" && fontSize > 4) fontSize -= 4;
+		
+		font = new Font(fontName, fontSize);
+		
+		TextBufferIterator iterator = tb.iterator();
+		
+		while (iterator.hasNext()) {
+			Text t = iterator.next().getValue();
+			t.setFont(font);
+		}
+	}
+	
+	//*** if this shortens word, may need to move word up !! 
+	public void handleBackspace(KeyEvent event) {
+		if (textRoot.getChildren().size() == 0) return;
+		
+		Text toDelete = tb.getCurTextObject();
+		tb.delChar();
+		
+		Text prev = tb.getCurTextObject(); 
+		
+		if (toDelete.getText().charAt(0) == '\r') {
+			cursor.updatePos(Math.ceil(prev.getX()+Utils.getTextWidth(prev)), prev.getY());
+		} else {
+			cursor.updatePos(toDelete.getX(), toDelete.getY());
+		}
+		
+		textRoot.getChildren().remove(toDelete);
+	}
+	
+	public void handleArrowInputs(KeyEvent event) {
+		if (event.getCode() == KeyCode.RIGHT) {
+			
+		} else if (event.getCode() == KeyCode.LEFT) {
+			
+		} else if (event.getCode() == KeyCode.UP) {
+			
+		} else if (event.getCode() == KeyCode.DOWN) {
+			
+		}
+	}
+	
+	public void setTextPosition(Text t) {
+		//***have to add if adding spaces while at rightmost pos of screen
+		t.setTextOrigin(VPos.TOP);
+		t.setFont(font);
+		
+		if (cursor.getXPos() + Utils.getTextWidth(t) > maxX) {
+			t.setX(MARGIN);
+			t.setY(Math.ceil(cursor.getYPos() + Utils.getFontHeight(font)));
+		} else {
+			t.setX(cursor.getXPos());
+			t.setY(cursor.getYPos());
+		}
+		
+		tb.addChar(t);
+		textRoot.getChildren().add(t);
+	}
+	
+	//for moving cursor as a result of text input. also word wrapping longer words and such
+	public void setCursorPosition(Text t) {
+		double margin = textRoot.getLayoutX();
+		if (t.getText().charAt(0) == '\r') {
+			cursor.updatePos(margin, Math.ceil(cursor.getYPos()+Utils.getFontHeight(font)));
+		} else {
+			double byY = 0; 
+			cursor.updatePos(Math.ceil(t.getX()+Utils.getTextWidth(t)), t.getY());
+		}
+	}
+	
+}
