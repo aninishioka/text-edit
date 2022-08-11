@@ -1,0 +1,8 @@
+package editor;
+
+public class ScrollBar {
+	
+	public ScrollBar() {
+		
+	}
+}

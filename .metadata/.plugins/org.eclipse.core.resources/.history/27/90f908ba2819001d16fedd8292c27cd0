@@ -1,0 +1,17 @@
+package editor;
+
+import javafx.scene.shape.Rectangle;
+
+public class ScrollBar {
+	private final Rectangle thumb;
+	private int x;
+	private int y = 0;
+	private final int width = 15;
+	private int height = 
+	
+	public ScrollBar(Scene scene) {
+		this.thumb = new Rectangle();
+		this.x = scene.width();
+		this.y = 0;
+	}
+}

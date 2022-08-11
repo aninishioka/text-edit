@@ -6,8 +6,10 @@
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
-		<item key="selection" value="handleBack"/>
+		<item key="selection" value="handleBackspace"/>
 		<list key="findhistory">
+			<item value="handlebackspace"/>
+			<item value="handleredo"/>
 			<item value="handleback"/>
 			<item value="drawtext"/>
 			<item value="getcurpos"/>

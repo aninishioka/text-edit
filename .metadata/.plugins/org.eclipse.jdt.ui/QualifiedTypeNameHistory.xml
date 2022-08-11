@@ -44,4 +44,5 @@
     <fullyQualifiedTypeName name="editor.EditHistory"/>
     <fullyQualifiedTypeName name="editor.EditType"/>
     <fullyQualifiedTypeName name="editor.HistoryNode"/>
+    <fullyQualifiedTypeName name="javafx.scene.control.ScrollBar"/>
 </qualifiedTypeNameHistroy>

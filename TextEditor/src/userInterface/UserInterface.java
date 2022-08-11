@@ -6,6 +6,7 @@ import editor.HistoryNode;
 import editor.TextBuffer;
 import editor.TextBufferIterator;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -28,7 +29,8 @@ public class UserInterface {
 	final private static int INITIAL_WIDTH = 500;
 	final private static int INITIAL_HEIGHT = 500;
 	final private static int INITIAL_FONT_SIZE = 12;
-	final private static int MARGIN = 5;
+	final private static int LEFT_RIGHT_MARGIN = 5;
+	final private static int TOP_BOTTOM_MARGIN = 0;
 	final private static String INITIAL_FONT_NAME = "Verdana";
 	private int width = INITIAL_WIDTH;
 	private int height = INITIAL_HEIGHT;
@@ -36,7 +38,8 @@ public class UserInterface {
 	private String fontName = INITIAL_FONT_NAME;
 	private int fontSize = INITIAL_FONT_SIZE;
 	private int maxX;
-	private EditHistory history;
+	private final EditHistory history;
+	private final ScrollBar scrollBar;
 	
 	
 	public UserInterface(Stage stage, TextBuffer tb) {
@@ -46,7 +49,8 @@ public class UserInterface {
 		this.textRoot = new Group();
 		this.cursor = initCursor();
 		this.tb = tb;
-		this.maxX = width - MARGIN;
+		this.maxX = width - LEFT_RIGHT_MARGIN;
+		this.scrollBar = initScrollBar();
 		this.history = new EditHistory();
 		
 		initInterface();
@@ -68,7 +72,7 @@ public class UserInterface {
 	
 	private void drawText() {
 		root.getChildren().add(textRoot);
-		textRoot.setLayoutX(MARGIN);
+		textRoot.setLayoutX(LEFT_RIGHT_MARGIN);
 	}
 	
 	private Cursor initCursor() {
@@ -80,8 +84,12 @@ public class UserInterface {
 		root.getChildren().add(cursor.getCursor());
 	}
 	
+	private ScrollBar initScrollBar() {
+		return new ScrollBar(scene);
+	}
+	
 	private void drawScrollBar() {
-		
+		root.getChildren().add(scrollBar.getBar());
 	}
 	
 	private void setEventHandlers() {
@@ -130,7 +138,7 @@ public class UserInterface {
 		t.setFont(font);
 		
 		if (cursor.getXPos() + Utils.getTextWidth(t) > maxX) {
-			t.setX(MARGIN);
+			t.setX(LEFT_RIGHT_MARGIN);
 			t.setY(Math.ceil(cursor.getYPos() + Utils.getFontHeight(font)));
 		} else {
 			t.setX(cursor.getXPos());
