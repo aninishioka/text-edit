@@ -1,0 +1,338 @@
+package userInterface;
+
+import editor.EditHistory;
+import editor.EditType;
+import editor.HistoryNode;
+import editor.TextBuffer;
+import editor.TextBufferIterator;
+import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
+import javafx.geometry.VPos;
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+
+public class UserInterface {
+	final private Stage stage;
+	final private Group root;
+	final private Group textRoot;
+	final private Scene scene;
+	final private Cursor cursor;
+	final private TextBuffer tb;
+	final private static int INITIAL_WIDTH = 500;
+	final private static int INITIAL_HEIGHT = 500;
+	final private static int INITIAL_FONT_SIZE = 12;
+	final private static int LEFT_RIGHT_MARGIN = 5;
+	final private static int TOP_BOTTOM_MARGIN = 0;
+	final private static String INITIAL_FONT_NAME = "Verdana";
+	private int width = INITIAL_WIDTH;
+	private int height = INITIAL_HEIGHT;
+	private Font font = new Font(INITIAL_FONT_NAME, INITIAL_FONT_SIZE);
+	private String fontName = INITIAL_FONT_NAME;
+	private int fontSize = INITIAL_FONT_SIZE;
+	private int maxX;
+	private final EditHistory history;
+	private final ScrollBar scrollBar;
+	
+	
+	public UserInterface(Stage stage, TextBuffer tb) {
+		this.stage = stage;
+		this.root = new Group();
+		this.scene = new Scene(root, width, height);
+		this.textRoot = new Group();
+		this.cursor = initCursor();
+		this.tb = tb;
+		this.maxX = width - LEFT_RIGHT_MARGIN;
+		this.scrollBar = initScrollBar();
+		this.history = new EditHistory();
+		
+		initInterface();
+		
+	}
+	
+	private void initInterface() {
+		drawBackground();
+		drawCursor();
+		drawText();
+		drawScrollBar();
+		setEventHandlers();
+		stage.show();
+	}
+
+	private void drawBackground() {
+		stage.setScene(scene);
+	}
+	
+	private void drawText() {
+		root.getChildren().add(textRoot);
+		textRoot.setLayoutX(LEFT_RIGHT_MARGIN);
+	}
+	
+	private Cursor initCursor() {
+		Cursor c = new Cursor(Utils.getFontHeight(font));
+		return c;
+	}
+	
+	private void drawCursor() {
+		root.getChildren().add(cursor.getCursor());
+	}
+	
+	private ScrollBar initScrollBar() {
+		return new ScrollBar(stage, scene);
+	}
+	
+	private void drawScrollBar() {
+		root.getChildren().add(scrollBar.getBar());
+	}
+	
+	private void setEventHandlers() {
+		scene.addEventHandler(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				handleTextInputEvent(event);
+			}
+			
+		});
+		
+		scene.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				handleKeyEvent(event);
+			}
+			
+		});
+		
+		//root.addEventHandler(MouseEvent.MOUSE_RELEASED, new MouseEventHandler());
+		
+		scrollBar.getBar().addEventHandler(MouseEvent.DRAG_DETECTED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				System.out.println("drag detected");
+				Rectangle source = scrollBar.getBar();
+				Dragboard db = source.startDragAndDrop(TransferMode.MOVE);
+				
+				event.consume();
+			}
+			
+		});
+		
+		scene.addEventFilter(DragEvent.DRAG_OVER, new EventHandler<DragEvent>() {
+
+			@Override
+			public void handle(DragEvent event) {
+				System.out.println("bruh");
+				if (event.getGestureSource() == scrollBar.getBar()) {
+					System.out.println("drag over");
+					scrollBar.setPos(event.getY());
+				}
+				event.consume();
+			}
+			
+		});
+		
+		scrollBar.getBar().addEventFilter(DragEvent.DRAG_DONE, new EventHandler<DragEvent>() {
+
+			@Override
+			public void handle(DragEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+		
+	}
+	
+	public void handleTextInputEvent(KeyEvent event) {
+		if (event.getCharacter().length() == 1 && !event.isShortcutDown()) {
+			Text t = new Text(event.getCharacter());
+			
+			history.recordEdit(EditType.ADD_CHAR, t);
+			history.clearRedoHistory();
+			
+			addText(t);
+		} 
+		event.consume();
+	}
+	
+	public void addText(Text t) {
+		setText(t);
+		setCursorPosition(t);
+	}
+	
+	public void setText(Text t) {
+		//***have to add if adding spaces while at rightmost pos of screen
+		t.setTextOrigin(VPos.TOP);
+		t.setFont(font);
+		
+		if (cursor.getXPos() + Utils.getTextWidth(t) > maxX) {
+			t.setX(LEFT_RIGHT_MARGIN);
+			t.setY(Math.ceil(cursor.getYPos() + Utils.getFontHeight(font)));
+		} else {
+			t.setX(cursor.getXPos());
+			t.setY(cursor.getYPos());
+		}
+		
+		tb.addChar(t);
+		textRoot.getChildren().add(t);
+	}
+	
+	//for moving cursor as a result of text input. also word wrapping longer words and such
+	public void setCursorPosition(Text t) {
+		double margin = textRoot.getLayoutX();
+		if (t.getText().charAt(0) == '\r') {
+			cursor.updatePos(margin, Math.ceil(cursor.getYPos()+Utils.getFontHeight(font)));
+		} else { 
+			cursor.updatePos(Math.ceil(t.getX()+Utils.getTextWidth(t)), t.getY());
+		}
+	}
+
+	public void handleKeyEvent(KeyEvent event) {
+		if (event.getCode() == KeyCode.BACK_SPACE) {
+			handleBackspace(event);
+			history.clearRedoHistory();
+		} else if (event.isShortcutDown()) {
+			handleShortCut(event);
+		} else if (event.getCharacter().length() == 0) {
+			handleArrowInputs(event);
+		}
+		event.consume();
+	}
+	
+	public void handleShortCut(KeyEvent event) {
+		KeyCombination incFont = new KeyCodeCombination(KeyCode.ADD, KeyCombination.META_DOWN);
+		KeyCombination incFont60Keeb = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.META_DOWN);
+		KeyCombination decFont = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.META_DOWN);
+		KeyCombination undo = new KeyCodeCombination(KeyCode.Z, KeyCombination.META_DOWN);
+		KeyCombination redo = new KeyCodeCombination(KeyCode.Y, KeyCombination.META_DOWN);
+		KeyCombination copy = new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN);
+		KeyCombination paste = new KeyCodeCombination(KeyCode.V, KeyCombination.META_DOWN);
+		KeyCombination cut = new KeyCodeCombination(KeyCode.X, KeyCombination.META_DOWN);
+		
+		if (incFont.match(event) || incFont60Keeb.match(event)) {
+			changeFontSize("inc");
+		} else if (decFont.match(event)) {
+			changeFontSize("dec");
+		} else if (undo.match(event)) {
+			handleUndo();
+		} else if (redo.match(event)) {
+			handleRedo();
+		} else if (copy.match(event) || cut.match(event)) {
+			
+		} else if (paste.match(event)) {
+			
+		}
+	}
+	
+	private void changeFontSize(String incOrDec) {
+		if (incOrDec == "inc") fontSize += 4;
+		else if (incOrDec == "dec" && fontSize > 4) fontSize -= 4;
+		
+		font = new Font(fontName, fontSize);
+		
+		TextBufferIterator iterator = tb.iterator();
+		
+		while (iterator.hasNext()) {
+			Text t = iterator.next().getValue();
+			t.setFont(font);
+		}
+	}
+	
+	//*** if this shortens word, may need to move word up !! 
+	public void handleBackspace(KeyEvent event) {
+		if (textRootEmpty()) return;
+		deleteText();
+		Text toDelete = tb.getCurTextObject();
+		history.recordEdit(EditType.DEL_CHAR, toDelete);
+	}
+	
+	public void deleteText() {
+		if (textRootEmpty()) return;
+		
+		Text toDelete = tb.getCurTextObject();
+		tb.delChar();
+		
+		Text prev = tb.getCurTextObject(); 
+		
+		if (toDelete.getText().charAt(0) == '\r') {
+			cursor.updatePos(Math.ceil(prev.getX()+Utils.getTextWidth(prev)), prev.getY());
+		} else {
+			cursor.updatePos(toDelete.getX(), toDelete.getY());
+		}
+		
+		textRoot.getChildren().remove(toDelete);
+	}
+	
+	public void handleUndo() {
+		if (history.undoHistoryEmpty()) return;
+		HistoryNode action = history.undo();
+		if (action.getType() == EditType.ADD_CHAR) {
+			if (textRootEmpty()) return;
+			deleteText();
+			history.recordUndo(action);
+		} else if (action.getType() == EditType.DEL_CHAR) {
+			Text t = action.getText();
+			addText(t);
+			
+		}
+	}
+	
+	public void handleRedo() {
+		if (history.redoHistoryEmpty()) return;
+		
+		HistoryNode action = history.redo();
+		
+		if (action.getType() == EditType.ADD_CHAR) {
+			Text t = action.getText();
+			addText(t);
+		} else if (action.getType() == EditType.DEL_CHAR) {
+			deleteText();
+		}
+ 	}
+	
+	public boolean textRootEmpty() {
+		return textRoot.getChildren().size() == 0;
+	}
+	
+	public void handleArrowInputs(KeyEvent event) {
+		if (event.getCode() == KeyCode.RIGHT) {
+			
+		} else if (event.getCode() == KeyCode.LEFT) {
+			
+		} else if (event.getCode() == KeyCode.UP) {
+			
+		} else if (event.getCode() == KeyCode.DOWN) {
+			
+		}
+	}
+	
+	public void handleScrollBarEvent(MouseEvent event) {
+		Node source = (Node) event.getSource();
+		source.startFullDrag();
+		
+		double y = cursor.getYPos();
+		
+		scrollBar.setPos(y);
+		
+		textRoot.setLayoutY(y);
+		System.out.println(y);
+		
+		
+		event.consume();
+	}
+	
+}

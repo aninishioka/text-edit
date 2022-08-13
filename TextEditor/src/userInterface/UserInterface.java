@@ -9,13 +9,18 @@ import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
@@ -40,6 +45,7 @@ public class UserInterface {
 	private int maxX;
 	private final EditHistory history;
 	private final ScrollBar scrollBar;
+	private boolean scrollEngaged = false;
 	
 	
 	public UserInterface(Stage stage, TextBuffer tb) {
@@ -85,7 +91,7 @@ public class UserInterface {
 	}
 	
 	private ScrollBar initScrollBar() {
-		return new ScrollBar(scene);
+		return new ScrollBar(stage, scene);
 	}
 	
 	private void drawScrollBar() {
@@ -111,8 +117,47 @@ public class UserInterface {
 			
 		});
 		
-		
 		//root.addEventHandler(MouseEvent.MOUSE_RELEASED, new MouseEventHandler());
+		
+		scrollBar.getBar().addEventHandler(MouseEvent.DRAG_DETECTED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				Rectangle source = scrollBar.getBar();
+				scrollEngaged = true;
+				
+				event.consume();
+			}
+			
+		});
+		
+		scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				if (scrollEngaged) {
+					scrollBar.setPos(event.getY());
+				}
+				event.consume();
+			}
+			
+		});
+		
+		//add functionality for moving cursor with mouse
+		scrollBar.getBar().addEventFilter(MouseEvent.MOUSE_RELEASED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				if (scrollEngaged) {
+					scrollEngaged = false;
+				} else {
+					
+				}
+				event.consume();
+			}
+			
+		});
+		
 	}
 	
 	public void handleTextInputEvent(KeyEvent event) {
@@ -235,18 +280,6 @@ public class UserInterface {
 		textRoot.getChildren().remove(toDelete);
 	}
 	
-	public void handleArrowInputs(KeyEvent event) {
-		if (event.getCode() == KeyCode.RIGHT) {
-			
-		} else if (event.getCode() == KeyCode.LEFT) {
-			
-		} else if (event.getCode() == KeyCode.UP) {
-			
-		} else if (event.getCode() == KeyCode.DOWN) {
-			
-		}
-	}
-	
 	public void handleUndo() {
 		if (history.undoHistoryEmpty()) return;
 		HistoryNode action = history.undo();
@@ -276,6 +309,33 @@ public class UserInterface {
 	
 	public boolean textRootEmpty() {
 		return textRoot.getChildren().size() == 0;
+	}
+	
+	public void handleArrowInputs(KeyEvent event) {
+		if (event.getCode() == KeyCode.RIGHT) {
+			
+		} else if (event.getCode() == KeyCode.LEFT) {
+			
+		} else if (event.getCode() == KeyCode.UP) {
+			
+		} else if (event.getCode() == KeyCode.DOWN) {
+			
+		}
+	}
+	
+	public void handleScrollBarEvent(MouseEvent event) {
+		Node source = (Node) event.getSource();
+		source.startFullDrag();
+		
+		double y = cursor.getYPos();
+		
+		scrollBar.setPos(y);
+		
+		textRoot.setLayoutY(y);
+		System.out.println(y);
+		
+		
+		event.consume();
 	}
 	
 }

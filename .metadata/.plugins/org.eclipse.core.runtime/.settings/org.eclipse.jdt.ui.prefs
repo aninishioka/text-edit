@@ -1,6 +1,6 @@
 content_assist_completion_replacement_background=200,200,0
 content_assist_completion_replacement_foreground=200,0,0
-content_assist_lru_history=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><history maxLHS\="100" maxRHS\="10"><lhs name\="java.lang.Enum"><rhs name\="javafx.scene.input.KeyCode"/><rhs name\="editor.EditType"/></lhs><lhs name\="java.lang.constant.Constable"><rhs name\="javafx.scene.input.KeyCode"/><rhs name\="editor.EditType"/></lhs><lhs name\="javafx.util.Duration"><rhs name\="javafx.util.Duration"/></lhs><lhs name\="editor.EditType"><rhs name\="editor.EditType"/></lhs></history>
+content_assist_lru_history=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><history maxLHS\="100" maxRHS\="10"><lhs name\="java.lang.Enum"><rhs name\="javafx.scene.input.KeyCode"/><rhs name\="editor.EditType"/><rhs name\="javafx.scene.input.TransferMode"/></lhs><lhs name\="java.lang.constant.Constable"><rhs name\="javafx.scene.input.KeyCode"/><rhs name\="editor.EditType"/><rhs name\="javafx.scene.input.TransferMode"/></lhs><lhs name\="javafx.util.Duration"><rhs name\="javafx.util.Duration"/></lhs><lhs name\="editor.EditType"><rhs name\="editor.EditType"/></lhs><lhs name\="javafx.scene.paint.Paint"><rhs name\="javafx.scene.paint.Color"/></lhs></history>
 content_assist_number_of_computers=18
 content_assist_parameters_background=52,57,61
 content_assist_parameters_foreground=238,238,238
