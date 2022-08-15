@@ -1,7 +1,0 @@
-package userInterface;
-
-public class Utils {
-	public double getTextWidth(Text t) {
-		t.getLayoutBounds().getWidth();
-	}
-}

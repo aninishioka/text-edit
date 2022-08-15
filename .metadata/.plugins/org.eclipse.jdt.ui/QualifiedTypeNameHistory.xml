@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
     <fullyQualifiedTypeName name="editor.TextEditor"/>
-    <fullyQualifiedTypeName name="editor.BufferNode"/>
     <fullyQualifiedTypeName name="javafx.application.Application"/>
     <fullyQualifiedTypeName name="javafx.embed.swing.JFXPanel"/>
     <fullyQualifiedTypeName name="javafx.scene.layout.Pane"/>
@@ -18,7 +17,6 @@
     <fullyQualifiedTypeName name="javafx.animation.SequentialTransition"/>
     <fullyQualifiedTypeName name="javafx.animation.PauseTransition"/>
     <fullyQualifiedTypeName name="javafx.event.EventHandler"/>
-    <fullyQualifiedTypeName name="javafx.scene.Group"/>
     <fullyQualifiedTypeName name="editor.TextBuffer"/>
     <fullyQualifiedTypeName name="javafx.geometry.VPos"/>
     <fullyQualifiedTypeName name="java.lang.System"/>
@@ -26,7 +24,6 @@
     <fullyQualifiedTypeName name="javafx.scene.text.Font"/>
     <fullyQualifiedTypeName name="java.util.HashMap"/>
     <fullyQualifiedTypeName name="java.util.Arrays"/>
-    <fullyQualifiedTypeName name="java.util.List"/>
     <fullyQualifiedTypeName name="java.util.ArrayList"/>
     <fullyQualifiedTypeName name="javafx.scene.input.KeyCode"/>
     <fullyQualifiedTypeName name="javafx.scene.input.KeyCombination"/>
@@ -35,7 +32,6 @@
     <fullyQualifiedTypeName name="java.util.NoSuchElementException"/>
     <fullyQualifiedTypeName name="editor.TextBufferIterator"/>
     <fullyQualifiedTypeName name="java.util.Deque"/>
-    <fullyQualifiedTypeName name="java.util.LinkedList"/>
     <fullyQualifiedTypeName name="javafx.scene.text.Text"/>
     <fullyQualifiedTypeName name="editor.EditHistory"/>
     <fullyQualifiedTypeName name="editor.EditType"/>
@@ -51,4 +47,8 @@
     <fullyQualifiedTypeName name="javafx.scene.input.Dragboard"/>
     <fullyQualifiedTypeName name="javafx.scene.Node"/>
     <fullyQualifiedTypeName name="javafx.scene.input.TransferMode"/>
+    <fullyQualifiedTypeName name="javafx.scene.Group"/>
+    <fullyQualifiedTypeName name="editor.BufferNode"/>
+    <fullyQualifiedTypeName name="java.util.LinkedList"/>
+    <fullyQualifiedTypeName name="java.util.List"/>
 </qualifiedTypeNameHistroy>

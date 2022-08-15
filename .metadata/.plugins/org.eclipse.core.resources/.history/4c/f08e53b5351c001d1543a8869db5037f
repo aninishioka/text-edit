@@ -1,0 +1,15 @@
+package userInterface;
+
+public class StyleGuide {
+	final private static int INITIAL_WIDTH = 500;
+	final private static int INITIAL_HEIGHT = 500;
+	final private static int INITIAL_FONT_SIZE = 12;
+	final private static int LEFT_RIGHT_MARGIN = 5;
+	final private static int TOP_BOTTOM_MARGIN = 0;
+	final private static String INITIAL_FONT_NAME = "Verdana";
+	private int width = INITIAL_WIDTH;
+	private int height = INITIAL_HEIGHT;
+	private int fontSize = INITIAL_FONT_SIZE;
+	private String fontName = INITIAL_FONT_NAME;
+	
+}

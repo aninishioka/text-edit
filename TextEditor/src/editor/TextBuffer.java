@@ -87,4 +87,16 @@ public class TextBuffer implements Iterable<BufferNode> {
 	public TextBufferIterator iterator() {
 		return new TextBufferIterator(sentinel);
 	}
+	
+	public int getNumLines() {
+		return lines.size();
+	}
+	
+	public void addNewLines(BufferNode n) {
+		lines.add(n);
+	}
+	
+	public void clearLines() {
+		lines.clear();
+	}
 }

@@ -1,5 +1,6 @@
 package userInterface;
 
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -9,18 +10,20 @@ public class ScrollBar {
 	private final Rectangle scrollBar;
 	private double x;
 	private double y = 0;
-	private final double width = 10;
+	private final double width = 5;
 	private double height = 30;
 	private Scene scene;
 	private Stage stage;
+	private Group textRoot;
 	private int value = 0;
 	
 	//*** should change this so don't need to pass in stage, scene.
-	public ScrollBar(Stage stage, Scene scene) {
+	public ScrollBar(Stage stage, Scene scene, Group textRoot) {
 		this.scrollBar = new Rectangle(width, height);
 		this.x = Math.ceil(scene.getWidth() - this.width);
 		this.scene = scene;
 		this.stage = stage;
+		this.textRoot = textRoot;
 		initScrollBar();
 	}
 	
@@ -63,6 +66,10 @@ public class ScrollBar {
 	
 	public void updateValue() {
 		
+	}
+	
+	public void setHeight(double height) {
+		this.height = height;
 	}
 	
 }
