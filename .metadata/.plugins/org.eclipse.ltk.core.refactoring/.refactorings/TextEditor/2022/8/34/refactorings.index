@@ -4,3 +4,5 @@
 1660536401071	Delete element
 1660584798037	Rename local variable 'wordWidth'
 1660585386359	Rename local variable 'totalWordWidth'
+1660599235059	Rename field 'maxX'
+1660599441313	Rename field 'textRootWidth'

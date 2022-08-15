@@ -198,6 +198,55 @@ public class UserInterface {
 	
 	
 	private void setText() {
+		TextBufferIterator iterator = tb.iterator();
+		double curX = X_MARGIN;
+		double curY = Y_MARGIN;
+		List<Text> word = new LinkedList<>();
+		double wordWidth = 0;
+		
+		while (iterator.hasNext()) {
+			Text t = iterator.next().getValue();
+			
+			if (t.getText().charAt(0) == ' ' || t.getText().charAt(0) == '\r') {
+				
+				if (t.getText().charAt(0) == ' ') {
+					t.setX(curX);
+					t.setY(curY);
+					curX += Math.ceil(Utils.getTextWidth(t));
+				} else if (t.getText().charAt(0) == '\r') {
+					curX = X_MARGIN;
+					curY += Utils.getFontHeight(font);
+					t.setX(curX);
+					t.setY(curY);
+				}
+
+				word.clear();
+				wordWidth = 0;
+			} else {
+				wordWidth += Math.ceil(Utils.getTextWidth(t));
+				word.add(t);
+				
+				if (!fitsCurLine(curX, Utils.getTextWidth(t)) && wordWidth <= maxX && word.get(0).getX() != X_MARGIN) {
+					curX = X_MARGIN;
+					curY += Math.ceil(Utils.getFontHeight(font));
+					
+					for (Text c : word) {
+						c.setX(curX);
+						c.setY(curY);
+						curX += Math.ceil(Utils.getTextWidth(c));
+					}
+				} else {
+					if (!fitsCurLine(curX, Utils.getTextWidth(t))) {
+						curX = X_MARGIN;
+						curY += Math.ceil(Utils.getFontHeight(font));
+					}
+					t.setX(curX);
+					t.setY(curY);
+					
+					curX += Math.ceil(Utils.getTextWidth(t));
+				}
+			}
+		}
 		
 	}
 	
@@ -308,11 +357,12 @@ public class UserInterface {
 		if (action.getType() == EditType.ADD_CHAR) {
 			if (textRootEmpty()) return;
 			deleteText();
+			setCursorPosition();
 			history.recordUndo(action);
 		} else if (action.getType() == EditType.DEL_CHAR) {
 			Text t = action.getText();
 			addText(t);
-			
+			setCursorPosition();
 		}
 	}
 	
@@ -324,8 +374,10 @@ public class UserInterface {
 		if (action.getType() == EditType.ADD_CHAR) {
 			Text t = action.getText();
 			addText(t);
+			setCursorPosition();
 		} else if (action.getType() == EditType.DEL_CHAR) {
 			deleteText();
+			setCursorPosition();
 		}
  	}
 	
@@ -349,7 +401,6 @@ public class UserInterface {
 		if (tb.isEmpty()) return;
 		double textRootSize = tb.getLast().getValue().getY() + Utils.getFontHeight(font);
 		double scrollBarSize = Math.ceil(scene.getHeight() / textRootSize * scene.getHeight());
-		System.out.println(scrollBarSize);
 		scrollBar.setHeight(scrollBarSize);
 	}
 	
