@@ -77,7 +77,8 @@ public class Cursor {
 		return this.height;
 	}
 	
-	public void setHeight(int height) {
+	public void setHeight(double height) {
+		cursor.setHeight(height);
 		this.height = height;
 	}
 }

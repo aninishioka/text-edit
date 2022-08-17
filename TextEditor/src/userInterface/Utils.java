@@ -5,7 +5,7 @@ import javafx.scene.text.Text;
 
 public class Utils {
 	public static double getTextWidth(Text t) {
-		return t.getLayoutBounds().getWidth();
+		return Math.ceil(t.getLayoutBounds().getWidth());
 	}
 	
 	//cursor height based on font height, 
@@ -13,6 +13,6 @@ public class Utils {
 	public static double getFontHeight(Font font) {
 		Text t = new Text("a");
 		t.setFont(font);
-		return t.getLayoutBounds().getHeight();
+		return Math.ceil(t.getLayoutBounds().getHeight());
 	}
 }

@@ -17,11 +17,9 @@
     <fullyQualifiedTypeName name="javafx.animation.SequentialTransition"/>
     <fullyQualifiedTypeName name="javafx.animation.PauseTransition"/>
     <fullyQualifiedTypeName name="javafx.event.EventHandler"/>
-    <fullyQualifiedTypeName name="editor.TextBuffer"/>
     <fullyQualifiedTypeName name="javafx.geometry.VPos"/>
     <fullyQualifiedTypeName name="java.lang.System"/>
     <fullyQualifiedTypeName name="javafx.animation.TranslateTransition"/>
-    <fullyQualifiedTypeName name="javafx.scene.text.Font"/>
     <fullyQualifiedTypeName name="java.util.HashMap"/>
     <fullyQualifiedTypeName name="java.util.Arrays"/>
     <fullyQualifiedTypeName name="java.util.ArrayList"/>
@@ -40,7 +38,6 @@
     <fullyQualifiedTypeName name="javafx.geometry.Orientation"/>
     <fullyQualifiedTypeName name="javafx.scene.shape.Rectangle"/>
     <fullyQualifiedTypeName name="javafx.scene.Scene"/>
-    <fullyQualifiedTypeName name="java.lang.Math"/>
     <fullyQualifiedTypeName name="javafx.scene.paint.Color"/>
     <fullyQualifiedTypeName name="editor.ScrollBar"/>
     <fullyQualifiedTypeName name="javafx.stage.Stage"/>
@@ -51,4 +48,11 @@
     <fullyQualifiedTypeName name="editor.BufferNode"/>
     <fullyQualifiedTypeName name="java.util.LinkedList"/>
     <fullyQualifiedTypeName name="java.util.List"/>
+    <fullyQualifiedTypeName name="java.io.Serializable"/>
+    <fullyQualifiedTypeName name="editor.TextBuffer"/>
+    <fullyQualifiedTypeName name="javafx.scene.text.Font"/>
+    <fullyQualifiedTypeName name="javax.swing.event.ChangeListener"/>
+    <fullyQualifiedTypeName name="java.beans.PropertyChangeListener"/>
+    <fullyQualifiedTypeName name="javafx.beans.value.ChangeListener"/>
+    <fullyQualifiedTypeName name="java.lang.Math"/>
 </qualifiedTypeNameHistroy>

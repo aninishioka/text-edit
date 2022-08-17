@@ -6,23 +6,23 @@
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
-		<item key="selection" value="setText"/>
+		<item key="selection" value=""/>
 		<list key="findhistory">
-			<item value="settext"/>
-			<item value="\n"/>
-			<item value="iterator"/>
-			<item value="text"/>
-			<item value="resize"/>
+			<item value="println"/>
+			<item value="print"/>
+			<item value="system"/>
+			<item value="drawscrollbar"/>
+			<item value="initscrollbar"/>
+			<item value="scrollbar"/>
+			<item value="deletetext"/>
+			<item value="delete"/>
+			<item value="scene"/>
 			<item value="stage"/>
-			<item value="handlebackspace"/>
+			<item value="system.out."/>
 			<item value="handleredo"/>
-			<item value="handleback"/>
-			<item value="drawtext"/>
-			<item value="getcurpos"/>
-			<item value="cursor"/>
-			<item value="get"/>
-			<item value="seteve"/>
-			<item value="XPos"/>
+			<item value="setcursor"/>
+			<item value="handlebackspace"/>
+			<item value="maxx"/>
 		</list>
 		<list key="replacehistory">
 		</list>
