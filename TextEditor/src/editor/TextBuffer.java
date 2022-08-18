@@ -99,4 +99,18 @@ public class TextBuffer implements Iterable<BufferNode> {
 	public void clearLines() {
 		lines.clear();
 	}
+	
+	public void moveCurPosRight() {
+		if (this.getCurPos() == this.getLast()) return;
+		else this.setCurPos(this.getCurPos().getNext());
+	}
+	
+	public void moveCurPosLeft() {
+		if (this.curIsSentinel()) return;
+		else this.setCurPos(this.getCurPos().getPrev());
+	}
+	
+	public boolean curIsSentinel() {
+		return this.getCurPos() == this.sentinel;
+	}
 }

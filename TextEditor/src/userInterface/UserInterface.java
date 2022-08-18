@@ -239,7 +239,7 @@ public class UserInterface {
 	}
 	
 	public void setCursor() {
-		if (tb.isEmpty()) {
+		if (tb.isEmpty() || tb.curIsSentinel()) {
 			cursor.updatePos(X_MARGIN, Y_MARGIN);
 			return;
 		}
@@ -253,7 +253,7 @@ public class UserInterface {
 			history.clearRedoHistory();
 		} else if (event.isShortcutDown()) {
 			handleShortCut(event);
-		} else if (event.getCharacter().length() == 0) {
+		} else {
 			handleArrowInputs(event);
 		}
 	}
@@ -351,14 +351,15 @@ public class UserInterface {
 	
 	public void handleArrowInputs(KeyEvent event) {
 		if (event.getCode() == KeyCode.RIGHT) {
-			
+			tb.moveCurPosRight();
 		} else if (event.getCode() == KeyCode.LEFT) {
-			
+			tb.moveCurPosLeft();
 		} else if (event.getCode() == KeyCode.UP) {
 			
 		} else if (event.getCode() == KeyCode.DOWN) {
 			
 		}
+		setCursor();
 	}
 	
 	private void updateView() {
