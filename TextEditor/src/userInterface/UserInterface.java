@@ -19,7 +19,6 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
@@ -41,7 +40,6 @@ public class UserInterface {
 	private Font font = new Font(INITIAL_FONT_NAME, INITIAL_FONT_SIZE);
 	private String fontName = INITIAL_FONT_NAME;
 	private int fontSize = INITIAL_FONT_SIZE;
-	private double maxX;
 	private final EditHistory history;
 	private final ScrollBar scrollBar;
 	private boolean scrollEngaged = false;
@@ -54,7 +52,6 @@ public class UserInterface {
 		this.textRoot = new Group();
 		this.cursor = initCursor();
 		this.tb = tb;
-		this.maxX = width - (X_MARGIN * 2);
 		this.scrollBar = initScrollBar();
 		this.history = new EditHistory();
 		
@@ -90,10 +87,11 @@ public class UserInterface {
 	
 	private void drawScrollBar() {
 		root.getChildren().add(scrollBar.getBar());
+		setScrollBar();
 	}
 
 	private ScrollBar initScrollBar() {
-		return new ScrollBar(scene, textRoot);
+		return new ScrollBar(scene);
 	}
 	
 	private void setEventHandlers() {
@@ -102,6 +100,7 @@ public class UserInterface {
 			@Override
 			public void handle(KeyEvent event) {
 				handleTextInputEvent(event);
+				event.consume();
 			}
 			
 		});
@@ -110,7 +109,8 @@ public class UserInterface {
 
 			@Override
 			public void handle(KeyEvent event) {
-				handleKeyEvent(event);
+				handleSpecialKeyEvent(event);
+				event.consume();
 			}
 			
 		});
@@ -119,9 +119,7 @@ public class UserInterface {
 
 			@Override
 			public void handle(MouseEvent event) {
-				Rectangle source = scrollBar.getBar();
 				scrollEngaged = true;
-				
 				event.consume();
 			}
 			
@@ -156,12 +154,6 @@ public class UserInterface {
 		
 		stage.heightProperty().addListener(windowResizeListener);
 		stage.widthProperty().addListener(windowResizeListener);
-		/*stage.widthProperty().addListener(new ChangeListener<Number>() {
-	        @Override
-	        public void changed(ObservableValue<? extends Number> obs, Number oldVal, Number newVal) {
-	            setText();
-	        }
-	    });*/
 		
 	}
 	
@@ -173,9 +165,8 @@ public class UserInterface {
 			history.clearRedoHistory();
 			
 			addText(t);
-			setCursorPosition();
+			updateView();
 		} 
-		event.consume();
 	}
 	
 	public void addText(Text t) {
@@ -183,7 +174,6 @@ public class UserInterface {
 		t.setFont(font);
 		
 		tb.addChar(t);
-		setText();
 		textRoot.getChildren().add(t);
 	}
 	
@@ -217,7 +207,7 @@ public class UserInterface {
 				wordWidth += Math.ceil(Utils.getTextWidth(t));
 				word.add(t);
 				
-				if (!fitsCurLine(curX, Utils.getTextWidth(t)) && wordWidth <= maxX && word.get(0).getX() != X_MARGIN) {
+				if (!fitsCurLine(curX, Utils.getTextWidth(t)) && wordWidth <= getMaxTextX() && word.get(0).getX() != X_MARGIN) {
 					curX = X_MARGIN;
 					curY += Math.ceil(Utils.getFontHeight(font));
 					
@@ -242,10 +232,10 @@ public class UserInterface {
 	}
 	
 	private boolean fitsCurLine(double curX, double textWidth) {
-		return curX + textWidth <= maxX;
+		return curX + textWidth <= getMaxTextX();
 	}
 	
-	public void setCursorPosition() {
+	public void setCursor() {
 		if (tb.isEmpty()) {
 			cursor.updatePos(X_MARGIN, Y_MARGIN);
 			return;
@@ -254,7 +244,7 @@ public class UserInterface {
 		cursor.updatePos(t.getX()+Utils.getTextWidth(t), t.getY());
 	}
 
-	public void handleKeyEvent(KeyEvent event) {
+	public void handleSpecialKeyEvent(KeyEvent event) {
 		if (event.getCode() == KeyCode.BACK_SPACE) {
 			handleBackspace(event);
 			history.clearRedoHistory();
@@ -263,7 +253,6 @@ public class UserInterface {
 		} else if (event.getCharacter().length() == 0) {
 			handleArrowInputs(event);
 		}
-		event.consume();
 	}
 	
 	public void handleShortCut(KeyEvent event) {
@@ -303,18 +292,16 @@ public class UserInterface {
 			Text t = iterator.next().getValue();
 			t.setFont(font);
 		}
-		setText();
-		setCursorPosition();
+		updateView();
+		setScrollBar();
 		cursor.setHeight(Utils.getFontHeight(font));
 	}
 	
-	//*** if this shortens word, may need to move word up !! 
 	public void handleBackspace(KeyEvent event) {
 		if (textRootEmpty()) return;
 		deleteText();
 		Text toDelete = tb.getCurTextObject();
-		setText();
-		setCursorPosition();
+		updateView();
 		history.recordEdit(EditType.DEL_CHAR, toDelete);
 	}
 	
@@ -323,8 +310,6 @@ public class UserInterface {
 		
 		Text toDelete = tb.getCurTextObject();
 		tb.delChar();
-		
-		Text prev = tb.getCurTextObject();
 		
 		textRoot.getChildren().remove(toDelete);
 	}
@@ -335,13 +320,12 @@ public class UserInterface {
 		if (action.getType() == EditType.ADD_CHAR) {
 			if (textRootEmpty()) return;
 			deleteText();
-			setCursorPosition();
 			history.recordUndo(action);
 		} else if (action.getType() == EditType.DEL_CHAR) {
 			Text t = action.getText();
 			addText(t);
-			setCursorPosition();
 		}
+		updateView();
 	}
 	
 	public void handleRedo() {
@@ -352,11 +336,10 @@ public class UserInterface {
 		if (action.getType() == EditType.ADD_CHAR) {
 			Text t = action.getText();
 			addText(t);
-			setCursorPosition();
 		} else if (action.getType() == EditType.DEL_CHAR) {
 			deleteText();
-			setCursorPosition();
 		}
+		updateView();
  	}
 	
 	public boolean textRootEmpty() {
@@ -375,10 +358,29 @@ public class UserInterface {
 		}
 	}
 	
-	public void resizeScrollBar() {
-		if (tb.isEmpty()) return;
-		double textRootSize = tb.getLast().getValue().getY() + Utils.getFontHeight(font);
-		double scrollBarSize = Math.ceil(scene.getHeight() / textRootSize * scene.getHeight());
+	private void updateView() {
+		setText();
+		setCursor();
+		setScrollBar();
+		
+	}
+	
+	private void setScrollBar() {
+		setScrollBarVisibility();
+		resizeScrollBar();
+	}
+	
+	private void setScrollBarVisibility() {
+		if (tb.isEmpty() || getTextRootSize() <= scene.getHeight()) {
+			scrollBar.setVisibility(false);
+		} else {
+			scrollBar.setVisibility(true);
+		}
+	}
+	
+	private void resizeScrollBar() {
+		if (!scrollBar.getVisibility()) return;
+		double scrollBarSize = Math.ceil(scene.getHeight() / getTextRootSize() * scene.getHeight());
 		scrollBar.setHeight(scrollBarSize);
 	}
 	
@@ -387,8 +389,7 @@ public class UserInterface {
 		public void changed(ObservableValue<? extends Number> obs, Number oldVal, Number newVal) {
 			if (oldVal.toString() == "NaN") return;
 			resizeWindow();
-			setText();
-			setCursorPosition();
+			updateView();
 			scrollBar.alignRight(newVal.doubleValue());
 		}
 	};
@@ -396,7 +397,15 @@ public class UserInterface {
 	private void resizeWindow() {
 		this.height = scene.getHeight();
 		this.width = scene.getWidth();
-		this.maxX = width - (X_MARGIN * 2);
 	}
 	
+	
+	private double getMaxTextX() {
+		return this.width - (X_MARGIN*2);
+	}
+	
+	private double getTextRootSize() {
+		if (tb.isEmpty()) return 0;
+		else return tb.getLast().getValue().getY() + Utils.getFontHeight(font);
+	}
 }

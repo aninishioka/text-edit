@@ -11,3 +11,6 @@
 1660630193388	Rename method 'setPos'
 1660685272629	Rename field 'windowSizeListener'
 1660694274427	Rename field 'windowHeightListener'
+1660780122472	Rename method 'handleKeyEvent'
+1660780970618	Rename method 'setCursorPosition'
+1660781245812	Delete element

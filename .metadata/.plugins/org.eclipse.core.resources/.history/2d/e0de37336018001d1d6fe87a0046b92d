@@ -1,6 +1,0 @@
-package editor;
-
-public enum EditType {
-	UNDO,
-	REDO
-}

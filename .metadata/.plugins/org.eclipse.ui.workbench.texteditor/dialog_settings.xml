@@ -6,8 +6,14 @@
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
-		<item key="selection" value=""/>
+		<item key="selection" value="resize"/>
 		<list key="findhistory">
+			<item value="resize"/>
+			<item value="resize "/>
+			<item value="getlast"/>
+			<item value="getvalue"/>
+			<item value="settext"/>
+			<item value="resizescrollbar"/>
 			<item value="println"/>
 			<item value="print"/>
 			<item value="system"/>
@@ -17,12 +23,6 @@
 			<item value="deletetext"/>
 			<item value="delete"/>
 			<item value="scene"/>
-			<item value="stage"/>
-			<item value="system.out."/>
-			<item value="handleredo"/>
-			<item value="setcursor"/>
-			<item value="handlebackspace"/>
-			<item value="maxx"/>
 		</list>
 		<list key="replacehistory">
 		</list>
