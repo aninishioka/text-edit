@@ -46,7 +46,7 @@ public class ScrollBar {
 	}
 	
 	public double getY() {
-		return this.y;
+		return scrollBar.getTranslateY();
 	}
 	
 	public Rectangle getBar() {

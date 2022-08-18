@@ -66,6 +66,7 @@ public class UserInterface {
 		drawScrollBar();
 		setEventHandlers();
 		stage.show();
+		updateView();
 	}
 
 	private void drawBackground() {
@@ -87,7 +88,6 @@ public class UserInterface {
 	
 	private void drawScrollBar() {
 		root.getChildren().add(scrollBar.getBar());
-		setScrollBar();
 	}
 
 	private ScrollBar initScrollBar() {
@@ -131,6 +131,9 @@ public class UserInterface {
 			public void handle(MouseEvent event) {
 				if (scrollEngaged) {
 					scrollBar.setYPos(event.getY());
+					
+					float scrollValue = (float) scrollBar.getY() / (float) scene.getHeight();
+					textRoot.setTranslateY(-Math.ceil(scrollValue * getTextRootSize()));
 				}
 				event.consume();
 			}
@@ -406,6 +409,6 @@ public class UserInterface {
 	
 	private double getTextRootSize() {
 		if (tb.isEmpty()) return 0;
-		else return tb.getLast().getValue().getY() + Utils.getFontHeight(font);
+		else return Math.ceil(tb.getLast().getValue().getY() + Utils.getFontHeight(font));
 	}
 }
