@@ -1,7 +1,7 @@
 package editor;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+
 import java.util.List;
 
 import javafx.scene.text.Text;
@@ -37,6 +37,10 @@ public class TextBuffer implements Iterable<BufferNode> {
 		n.setPrev(newNode);
 		
 		setCurPos(newNode);
+	}
+	
+	public void addChar(char c) {
+		addChar(new Text(""+c));
 	}
 	
 	public void delChar() {
@@ -92,8 +96,12 @@ public class TextBuffer implements Iterable<BufferNode> {
 		return lines.size();
 	}
 	
-	public void addNewLines(BufferNode n) {
+	public void addNewLine(BufferNode n) {
 		lines.add(n);
+	}
+	
+	public void getLine() {
+		
 	}
 	
 	public void clearLines() {
@@ -112,5 +120,9 @@ public class TextBuffer implements Iterable<BufferNode> {
 	
 	public boolean curIsSentinel() {
 		return this.getCurPos() == this.sentinel;
+	}
+	
+	public void setCurToSentinel() {
+		setCurPos(sentinel);
 	}
 }

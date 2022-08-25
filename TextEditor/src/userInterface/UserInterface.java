@@ -1,7 +1,10 @@
 package userInterface;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+
+import build.BuildFile;
 import editor.EditHistory;
 import editor.EditType;
 import editor.HistoryNode;
@@ -66,6 +69,7 @@ public class UserInterface {
 		drawScrollBar();
 		setEventHandlers();
 		stage.show();
+		initText();
 		updateView();
 	}
 
@@ -160,7 +164,7 @@ public class UserInterface {
 		
 	}
 	
-	public void handleTextInputEvent(KeyEvent event) {
+	private void handleTextInputEvent(KeyEvent event) {
 		if (event.getCharacter().length() == 1 && !event.isShortcutDown()) {
 			Text t = new Text(event.getCharacter());
 			
@@ -172,12 +176,26 @@ public class UserInterface {
 		} 
 	}
 	
-	public void addText(Text t) {
+	private void addText(Text t) {
 		t.setTextOrigin(VPos.TOP);
 		t.setFont(font);
 		
 		tb.addChar(t);
 		textRoot.getChildren().add(t);
+	}
+	
+	private void initText() {
+		TextBufferIterator iterator = tb.iterator();
+		
+		while (iterator.hasNext()) {
+			Text t = iterator.next().getValue();
+			t.setTextOrigin(VPos.TOP);
+			t.setFont(font);
+			
+			textRoot.getChildren().add(t);
+		}
+		
+		tb.setCurToSentinel();
 	}
 	
 	
@@ -186,7 +204,6 @@ public class UserInterface {
 		double curX = X_MARGIN;
 		double curY = Y_MARGIN;
 		List<Text> word = new LinkedList<>();
-		double wordWidth = 0;
 		
 		while (iterator.hasNext()) {
 			Text t = iterator.next().getValue();
@@ -205,12 +222,10 @@ public class UserInterface {
 				}
 
 				word.clear();
-				wordWidth = 0;
 			} else {
-				wordWidth += Math.ceil(Utils.getTextWidth(t));
 				word.add(t);
 				
-				if (!fitsCurLine(curX, Utils.getTextWidth(t)) && wordWidth <= getMaxTextX() && word.get(0).getX() != X_MARGIN) {
+				if (!fitsCurLine(curX, Utils.getTextWidth(t)) && word.get(0).getX() != X_MARGIN) {
 					curX = X_MARGIN;
 					curY += Math.ceil(Utils.getFontHeight(font));
 					
@@ -238,7 +253,7 @@ public class UserInterface {
 		return curX + textWidth <= getMaxTextX();
 	}
 	
-	public void setCursor() {
+	private void setCursor() {
 		if (tb.isEmpty() || tb.curIsSentinel()) {
 			cursor.updatePos(X_MARGIN, Y_MARGIN);
 			return;
@@ -247,7 +262,7 @@ public class UserInterface {
 		cursor.updatePos(t.getX()+Utils.getTextWidth(t), t.getY());
 	}
 
-	public void handleSpecialKeyEvent(KeyEvent event) {
+	private void handleSpecialKeyEvent(KeyEvent event) {
 		if (event.getCode() == KeyCode.BACK_SPACE) {
 			handleBackspace(event);
 			history.clearRedoHistory();
@@ -258,7 +273,7 @@ public class UserInterface {
 		}
 	}
 	
-	public void handleShortCut(KeyEvent event) {
+	private void handleShortCut(KeyEvent event) {
 		KeyCombination incFont = new KeyCodeCombination(KeyCode.ADD, KeyCombination.META_DOWN);
 		KeyCombination incFont60Keeb = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.META_DOWN);
 		KeyCombination decFont = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.META_DOWN);
@@ -267,6 +282,7 @@ public class UserInterface {
 		KeyCombination copy = new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN);
 		KeyCombination paste = new KeyCodeCombination(KeyCode.V, KeyCombination.META_DOWN);
 		KeyCombination cut = new KeyCodeCombination(KeyCode.X, KeyCombination.META_DOWN);
+		KeyCombination save = new KeyCodeCombination(KeyCode.S, KeyCombination.META_DOWN);
 		
 		if (incFont.match(event) || incFont60Keeb.match(event)) {
 			changeFontSize("inc");
@@ -280,6 +296,12 @@ public class UserInterface {
 			
 		} else if (paste.match(event)) {
 			
+		} else if (save.match(event)) {
+			try {
+				BuildFile.saveFile("test", tb);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -300,7 +322,7 @@ public class UserInterface {
 		cursor.setHeight(Utils.getFontHeight(font));
 	}
 	
-	public void handleBackspace(KeyEvent event) {
+	private void handleBackspace(KeyEvent event) {
 		if (textRootEmpty()) return;
 		deleteText();
 		Text toDelete = tb.getCurTextObject();
@@ -308,7 +330,7 @@ public class UserInterface {
 		history.recordEdit(EditType.DEL_CHAR, toDelete);
 	}
 	
-	public void deleteText() {
+	private void deleteText() {
 		if (textRootEmpty()) return;
 		
 		Text toDelete = tb.getCurTextObject();
@@ -317,7 +339,7 @@ public class UserInterface {
 		textRoot.getChildren().remove(toDelete);
 	}
 	
-	public void handleUndo() {
+	private void handleUndo() {
 		if (history.undoHistoryEmpty()) return;
 		HistoryNode action = history.undo();
 		if (action.getType() == EditType.ADD_CHAR) {
@@ -331,7 +353,7 @@ public class UserInterface {
 		updateView();
 	}
 	
-	public void handleRedo() {
+	private void handleRedo() {
 		if (history.redoHistoryEmpty()) return;
 		
 		HistoryNode action = history.redo();
@@ -345,17 +367,28 @@ public class UserInterface {
 		updateView();
  	}
 	
-	public boolean textRootEmpty() {
+	private boolean textRootEmpty() {
 		return textRoot.getChildren().size() == 0;
 	}
 	
-	public void handleArrowInputs(KeyEvent event) {
+	private void handleArrowInputs(KeyEvent event) {
 		if (event.getCode() == KeyCode.RIGHT) {
 			tb.moveCurPosRight();
 		} else if (event.getCode() == KeyCode.LEFT) {
 			tb.moveCurPosLeft();
 		} else if (event.getCode() == KeyCode.UP) {
-			
+			/*double x = cursor.getXPos();
+			double y = Math.ceil(cursor.getYPos() - Utils.getFontHeight(font));
+			Text curT = tb.getCurTextObject();
+			while (!tb.curIsSentinel() && curT.getY() > y) {
+				tb.moveCurPosLeft();
+				curT = tb.getCurTextObject();
+			}
+			while (!tb.curIsSentinel() && curT.getX() > x) {
+				tb.moveCurPosLeft();
+				curT = tb.getCurTextObject();
+			}
+			tb.moveCurPosLeft();*/
 		} else if (event.getCode() == KeyCode.DOWN) {
 			
 		}

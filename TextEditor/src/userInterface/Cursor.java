@@ -26,8 +26,8 @@ public class Cursor {
 	}
 	
 	private void initPos() {
-		cursor.setLayoutX(LEFT_RIGHT_MARGIN);
-		cursor.setLayoutY(TOP_BOTTOM_MARGIN);
+		cursor.setX(LEFT_RIGHT_MARGIN);
+		cursor.setY(TOP_BOTTOM_MARGIN);
 	}
 	
 	private void initAnimation() {

@@ -30,4 +30,8 @@ public class BufferNode {
 		public void setNext(BufferNode n) {
 			next = n;
 		}
+		
+		public String getTextValue() {
+			return value.getText();
+		}
 	}
