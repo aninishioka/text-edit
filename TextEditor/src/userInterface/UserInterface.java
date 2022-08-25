@@ -87,7 +87,7 @@ public class UserInterface {
 	}
 	
 	private void drawCursor() {
-		root.getChildren().add(cursor.getCursor());
+		textRoot.getChildren().add(cursor.getCursor());
 	}
 	
 	private void drawScrollBar() {

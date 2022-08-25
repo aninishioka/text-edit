@@ -11,7 +11,7 @@ public class Cursor {
 	public final Rectangle cursor;
 	public final static int width = 1;
 	public double height;
-	public final double LEFT_RIGHT_MARGIN = 5;
+	public final double LEFT_RIGHT_MARGIN = 0;
 	public final double TOP_BOTTOM_MARGIN = 0;
 	public double xPos = LEFT_RIGHT_MARGIN;
 	public double yPos = TOP_BOTTOM_MARGIN;
