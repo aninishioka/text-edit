@@ -1,7 +1,0 @@
-package build;
-
-import java.io.Serializable;
-
-public class FileData implements Serializable {
-	
-}

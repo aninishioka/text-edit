@@ -18,7 +18,7 @@ public class TextEditor extends Application {
 	public void start(Stage stage) throws Exception {
 		TextBuffer tb = new TextBuffer();
 		BuildFile.openFile(file, tb);
-		new UserInterface(stage, tb);
+		new UserInterface(stage, tb, file);
 	}
 
 }

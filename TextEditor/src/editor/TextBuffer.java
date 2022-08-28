@@ -9,16 +9,16 @@ import javafx.scene.text.Text;
 public class TextBuffer implements Iterable<BufferNode> {
 	private BufferNode sentinel;
 	private BufferNode curPos;
-	private List<BufferNode> lines;
+	private List<BufferNode> linePointers;
 	
 	
 	public TextBuffer() {
-		sentinel = new BufferNode(null);
+		sentinel = new BufferNode(new Text(""));
 		sentinel.setPrev(sentinel);
 		sentinel.setNext(sentinel);
 		
 		curPos = sentinel;
-		lines  = new ArrayList<>();
+		linePointers  = new ArrayList<>();
 	}
 	
 	public void addChar(Text t) {
@@ -93,19 +93,15 @@ public class TextBuffer implements Iterable<BufferNode> {
 	}
 	
 	public int getNumLines() {
-		return lines.size();
+		return linePointers.size();
 	}
 	
-	public void addNewLine(BufferNode n) {
-		lines.add(n);
+	public void addNewLinePointer(BufferNode n) {
+		linePointers.add(n);
 	}
 	
-	public void getLine() {
-		
-	}
-	
-	public void clearLines() {
-		lines.clear();
+	public void clearLinePointers() {
+		linePointers.clear();
 	}
 	
 	public void moveCurPosRight() {
@@ -124,5 +120,9 @@ public class TextBuffer implements Iterable<BufferNode> {
 	
 	public void setCurToSentinel() {
 		setCurPos(sentinel);
+	}
+	
+	public List<BufferNode> getLinePointers() {
+		return this.linePointers;
 	}
 }

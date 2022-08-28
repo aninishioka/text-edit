@@ -16,5 +16,13 @@
 		<item key="expressionHistoryEntryCount" value="1"/>
 	</section>
 	<section name="conditionHistory">
+		<item key="conditionHistoryEntry_0" value="getTextRootSize() &gt; scene.getHeight()"/>
+		<item key="conditionHistoryEntryCount" value="1"/>
+	</section>
+	<section name="org.eclipse.jdt.internal.debug.ui.ExpressionInformationControlCreator$ExpressionInformationControl">
+		<item key="WIDTH" value="669"/>
+		<item key="HEIGHT" value="156"/>
+		<item key="SashWeightTree" value="200"/>
+		<item key="SashWeightDetails" value="200"/>
 	</section>
 </section>

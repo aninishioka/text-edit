@@ -4,11 +4,13 @@ import javafx.scene.text.Text;
 
 public class BufferNode {
 		private Text value;
+		private String string;
 		private BufferNode prev;
 		private BufferNode next;
 		
 		public BufferNode(Text value) {
 			this.value = value;
+			this.string = value.getText();
 		}
 		
 		public Text getValue() {
@@ -32,6 +34,6 @@ public class BufferNode {
 		}
 		
 		public String getTextValue() {
-			return value.getText();
+			return string;
 		}
 	}

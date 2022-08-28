@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import build.BuildFile;
+import editor.BufferNode;
 import editor.EditHistory;
 import editor.EditType;
 import editor.HistoryNode;
@@ -46,9 +47,10 @@ public class UserInterface {
 	private final EditHistory history;
 	private final ScrollBar scrollBar;
 	private boolean scrollEngaged = false;
+	private final String file;
 	
 	
-	public UserInterface(Stage stage, TextBuffer tb) {
+	public UserInterface(Stage stage, TextBuffer tb, String fileName) {
 		this.stage = stage;
 		this.root = new Group();
 		this.scene = new Scene(root, width, height);
@@ -57,6 +59,7 @@ public class UserInterface {
 		this.tb = tb;
 		this.scrollBar = initScrollBar();
 		this.history = new EditHistory();
+		this.file = fileName;
 		
 		initInterface();
 		
@@ -67,6 +70,7 @@ public class UserInterface {
 		drawCursor();
 		drawText();
 		drawScrollBar();
+		setMouseCursor();
 		setEventHandlers();
 		stage.show();
 		initText();
@@ -80,6 +84,10 @@ public class UserInterface {
 	private void drawText() {
 		root.getChildren().add(textRoot);
 		textRoot.setLayoutX(X_MARGIN);
+	}
+	
+	private void setMouseCursor() {
+		scene.setCursor(javafx.scene.Cursor.TEXT);
 	}
 	
 	private Cursor initCursor() {
@@ -125,6 +133,24 @@ public class UserInterface {
 			public void handle(MouseEvent event) {
 				scrollEngaged = true;
 				event.consume();
+			}
+			
+		});
+		
+		scrollBar.getBar().addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent arg0) {
+				scene.setCursor(javafx.scene.Cursor.DEFAULT);
+			}
+			
+		});
+		
+		scrollBar.getBar().addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent arg0) {
+				scene.setCursor(javafx.scene.Cursor.TEXT);
 			}
 			
 		});
@@ -204,6 +230,7 @@ public class UserInterface {
 		double curX = X_MARGIN;
 		double curY = Y_MARGIN;
 		List<Text> word = new LinkedList<>();
+		tb.clearLinePointers();
 		
 		while (iterator.hasNext()) {
 			Text t = iterator.next().getValue();
@@ -247,6 +274,23 @@ public class UserInterface {
 			}
 		}
 		
+		updateLinePointers();
+	}
+	
+	private void updateLinePointers() {
+		TextBufferIterator iterator = tb.iterator();
+		
+		double prevLine = -1;
+		
+		while (iterator.hasNext()) {
+			BufferNode n = iterator.next();
+			Text t = n.getValue(); 
+			
+			if (t.getY() != prevLine) {
+				tb.addNewLinePointer(n);
+				prevLine = t.getY();
+			}
+		}
 	}
 	
 	private boolean fitsCurLine(double curX, double textWidth) {
@@ -298,7 +342,7 @@ public class UserInterface {
 			
 		} else if (save.match(event)) {
 			try {
-				BuildFile.saveFile("test", tb);
+				BuildFile.saveFile(file, tb);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -445,4 +489,13 @@ public class UserInterface {
 		if (tb.isEmpty()) return 0;
 		else return Math.ceil(tb.getLast().getValue().getY() + Utils.getFontHeight(font));
 	}
+	
+	
+	private int getLineNumber(double y) {
+		return (int) (y / Utils.getFontHeight(font));
+	}
+	
+	
+	
+	
 }
