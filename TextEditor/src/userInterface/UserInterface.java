@@ -127,6 +127,28 @@ public class UserInterface {
 			
 		});
 		
+		scene.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				if (scrollEngaged) return;
+				if (!tb.isEmpty()) {
+					int lineNum = getLineNumber(Math.round(event.getY()));
+					BufferNode node = tb.getLinePointer(lineNum);
+					while (node.hasNext() 
+							&& node.getNext().getValue().getX() < event.getX() - X_MARGIN - Utils.getTextWidth(node.getValue()) / 2
+							&& node.getNext().getValue().getY() == node.getValue().getY()) {
+						node = node.getNext();
+					}
+					tb.setCurPos(node);
+				}
+				setCursor();
+				
+				event.consume();
+			}
+			
+		});
+		
 		scrollBar.getBar().addEventHandler(MouseEvent.DRAG_DETECTED, new EventHandler<MouseEvent>() {
 
 			@Override
@@ -170,16 +192,13 @@ public class UserInterface {
 			
 		});
 		
-		//add functionality for moving cursor with mouse
 		scrollBar.getBar().addEventFilter(MouseEvent.MOUSE_RELEASED, new EventHandler<MouseEvent>() {
 
 			@Override
 			public void handle(MouseEvent event) {
 				if (scrollEngaged) {
 					scrollEngaged = false;
-				} else {
-					
-				}
+				} 
 				event.consume();
 			}
 			
@@ -187,6 +206,7 @@ public class UserInterface {
 		
 		stage.heightProperty().addListener(windowResizeListener);
 		stage.widthProperty().addListener(windowResizeListener);
+
 		
 	}
 	
@@ -233,7 +253,12 @@ public class UserInterface {
 		tb.clearLinePointers();
 		
 		while (iterator.hasNext()) {
-			Text t = iterator.next().getValue();
+			BufferNode bn = iterator.next();
+			Text t = bn.getValue();
+			if (bn.isDummy()) {
+				tb.delChar(bn);
+				continue;
+			}
 			
 			if (t.getText().charAt(0) == ' ' || t.getText().charAt(0) == '\r') {
 				
@@ -280,7 +305,7 @@ public class UserInterface {
 	private void updateLinePointers() {
 		TextBufferIterator iterator = tb.iterator();
 		
-		double prevLine = -1;
+		double prevLine = 0;
 		
 		while (iterator.hasNext()) {
 			BufferNode n = iterator.next();
@@ -291,6 +316,7 @@ public class UserInterface {
 				prevLine = t.getY();
 			}
 		}
+		
 	}
 	
 	private boolean fitsCurLine(double curX, double textWidth) {
@@ -421,20 +447,29 @@ public class UserInterface {
 		} else if (event.getCode() == KeyCode.LEFT) {
 			tb.moveCurPosLeft();
 		} else if (event.getCode() == KeyCode.UP) {
-			/*double x = cursor.getXPos();
-			double y = Math.ceil(cursor.getYPos() - Utils.getFontHeight(font));
-			Text curT = tb.getCurTextObject();
-			while (!tb.curIsSentinel() && curT.getY() > y) {
-				tb.moveCurPosLeft();
-				curT = tb.getCurTextObject();
+			BufferNode prevNode = tb.getCurPos();
+			int lineNum = getLineNumber(prevNode.getValue().getY());
+			if (lineNum > 0) {
+				BufferNode node = tb.getLinePointer(lineNum-1);
+				while (node.hasNext() 
+						&& node.getNext().getValue().getX() < prevNode.getValue().getX() + Utils.getTextWidth(prevNode.getValue()) / 2
+						&& node.getNext().getValue().getY() == node.getValue().getY()) {
+					node = node.getNext();
+				}
+				tb.setCurPos(node);
 			}
-			while (!tb.curIsSentinel() && curT.getX() > x) {
-				tb.moveCurPosLeft();
-				curT = tb.getCurTextObject();
-			}
-			tb.moveCurPosLeft();*/
 		} else if (event.getCode() == KeyCode.DOWN) {
-			
+			BufferNode prevNode = tb.getCurPos();
+			int lineNum = getLineNumber(prevNode.getValue().getY());
+			if (lineNum < tb.getNumLines() - 1) {
+				BufferNode node = tb.getLinePointer(lineNum+1);
+				while (node.hasNext() 
+						&& node.getNext().getValue().getX() < prevNode.getValue().getX() + Utils.getTextWidth(node.getValue()) / 2
+						&& node.getNext().getValue().getY() == node.getValue().getY()) {
+					node = node.getNext();
+				}
+				tb.setCurPos(node);
+			}
 		}
 		setCursor();
 	}
@@ -490,9 +525,11 @@ public class UserInterface {
 		else return Math.ceil(tb.getLast().getValue().getY() + Utils.getFontHeight(font));
 	}
 	
-	
+
 	private int getLineNumber(double y) {
-		return (int) (y / Utils.getFontHeight(font));
+		int lineNum = (int) y / (int) Utils.getFontHeight(font);
+		if (lineNum >= tb.getNumLines()) return tb.getNumLines()-1;
+		else return lineNum;
 	}
 	
 	

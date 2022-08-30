@@ -1,0 +1,537 @@
+package userInterface;
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+
+import build.BuildFile;
+import editor.BufferNode;
+import editor.EditHistory;
+import editor.EditType;
+import editor.HistoryNode;
+import editor.TextBuffer;
+import editor.TextBufferIterator;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
+import javafx.geometry.VPos;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+
+public class UserInterface {
+	final private Stage stage;
+	final private Group root;
+	final private Group textRoot;
+	final private Scene scene;
+	final private Cursor cursor;
+	final private TextBuffer tb;
+	final private static double INITIAL_WIDTH = 500;
+	final private static int INITIAL_HEIGHT = 500;
+	final private static int INITIAL_FONT_SIZE = 12;
+	final private static int X_MARGIN = 5;
+	final private static int Y_MARGIN = 0;
+	final private static String INITIAL_FONT_NAME = "Verdana";
+	private double width = INITIAL_WIDTH;
+	private double height = INITIAL_HEIGHT;
+	private Font font = new Font(INITIAL_FONT_NAME, INITIAL_FONT_SIZE);
+	private String fontName = INITIAL_FONT_NAME;
+	private int fontSize = INITIAL_FONT_SIZE;
+	private final EditHistory history;
+	private final ScrollBar scrollBar;
+	private boolean scrollEngaged = false;
+	private final String file;
+	
+	
+	public UserInterface(Stage stage, TextBuffer tb, String fileName) {
+		this.stage = stage;
+		this.root = new Group();
+		this.scene = new Scene(root, width, height);
+		this.textRoot = new Group();
+		this.cursor = initCursor();
+		this.tb = tb;
+		this.scrollBar = initScrollBar();
+		this.history = new EditHistory();
+		this.file = fileName;
+		
+		initInterface();
+		
+	}
+	
+	private void initInterface() {
+		drawBackground();
+		drawCursor();
+		drawText();
+		drawScrollBar();
+		setMouseCursor();
+		setEventHandlers();
+		stage.show();
+		initText();
+		updateView();
+	}
+
+	private void drawBackground() {
+		stage.setScene(scene);
+	}
+	
+	private void drawText() {
+		root.getChildren().add(textRoot);
+		textRoot.setLayoutX(X_MARGIN);
+	}
+	
+	private void setMouseCursor() {
+		scene.setCursor(javafx.scene.Cursor.TEXT);
+	}
+	
+	private Cursor initCursor() {
+		return new Cursor(Utils.getFontHeight(font));
+	}
+	
+	private void drawCursor() {
+		textRoot.getChildren().add(cursor.getCursor());
+	}
+	
+	private void drawScrollBar() {
+		root.getChildren().add(scrollBar.getBar());
+	}
+
+	private ScrollBar initScrollBar() {
+		return new ScrollBar(scene);
+	}
+	
+	private void setEventHandlers() {
+		scene.addEventHandler(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				handleTextInputEvent(event);
+				event.consume();
+			}
+			
+		});
+		
+		scene.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+
+			@Override
+			public void handle(KeyEvent event) {
+				handleSpecialKeyEvent(event);
+				event.consume();
+			}
+			
+		});
+		
+		scene.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				if (scrollEngaged) return;
+				if (!tb.isEmpty()) {
+					int lineNum = getLineNumber(Math.round(event.getY()));
+					BufferNode node = tb.getLinePointer(lineNum);
+					while (node.hasNext() 
+							&& node.getNext().getValue().getX() < event.getX() - X_MARGIN - Utils.getTextWidth(node.getValue()) / 2
+							&& node.getNext().getValue().getY() == node.getValue().getY()) {
+						node = node.getNext();
+					}
+					tb.setCurPos(node);
+				}
+				setCursor();
+				
+				event.consume();
+			}
+			
+		});
+		
+		scrollBar.getBar().addEventHandler(MouseEvent.DRAG_DETECTED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				scrollEngaged = true;
+				event.consume();
+			}
+			
+		});
+		
+		scrollBar.getBar().addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent arg0) {
+				scene.setCursor(javafx.scene.Cursor.DEFAULT);
+			}
+			
+		});
+		
+		scrollBar.getBar().addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent arg0) {
+				scene.setCursor(javafx.scene.Cursor.TEXT);
+			}
+			
+		});
+		
+		scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				if (scrollEngaged) {
+					scrollBar.setYPos(event.getY());
+					
+					float scrollValue = (float) scrollBar.getY() / (float) scene.getHeight();
+					textRoot.setTranslateY(-Math.ceil(scrollValue * getTextRootSize()));
+				}
+				event.consume();
+			}
+			
+		});
+		
+		scrollBar.getBar().addEventFilter(MouseEvent.MOUSE_RELEASED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				if (scrollEngaged) {
+					scrollEngaged = false;
+				} 
+				event.consume();
+			}
+			
+		});
+		
+		stage.heightProperty().addListener(windowResizeListener);
+		stage.widthProperty().addListener(windowResizeListener);
+
+		
+	}
+	
+	private void handleTextInputEvent(KeyEvent event) {
+		if (event.getCharacter().length() == 1 && !event.isShortcutDown()) {
+			Text t = new Text(event.getCharacter());
+			
+			history.recordEdit(EditType.ADD_CHAR, t);
+			history.clearRedoHistory();
+			
+			addText(t);
+			updateView();
+		} 
+	}
+	
+	private void addText(Text t) {
+		t.setTextOrigin(VPos.TOP);
+		t.setFont(font);
+		
+		tb.addChar(t);
+		textRoot.getChildren().add(t);
+	}
+	
+	private void initText() {
+		TextBufferIterator iterator = tb.iterator();
+		
+		while (iterator.hasNext()) {
+			Text t = iterator.next().getValue();
+			t.setTextOrigin(VPos.TOP);
+			t.setFont(font);
+			
+			textRoot.getChildren().add(t);
+		}
+		
+		tb.setCurToSentinel();
+	}
+	
+	
+	private void setText() {
+		TextBufferIterator iterator = tb.iterator();
+		double curX = X_MARGIN;
+		double curY = Y_MARGIN;
+		List<Text> word = new LinkedList<>();
+		tb.clearLinePointers();
+		
+		while (iterator.hasNext()) {
+			BufferNode bn = iterator.next();
+			Text t = bn.getValue();
+			if (bn.isDummy()) {
+				tb.delChar(bn);
+				continue;
+			}
+			
+			if (t.getText().charAt(0) == ' ' || t.getText().charAt(0) == '\r') {
+				
+				if (t.getText().charAt(0) == ' ') {
+					t.setX(curX);
+					t.setY(curY);
+					curX += Math.ceil(Utils.getTextWidth(t));
+				} else if (t.getText().charAt(0) == '\r') {
+					curX = X_MARGIN;
+					curY += Utils.getFontHeight(font);
+					t.setX(curX);
+					t.setY(curY);
+				}
+
+				word.clear();
+			} else {
+				word.add(t);
+				
+				if (!fitsCurLine(curX, Utils.getTextWidth(t)) && word.get(0).getX() != X_MARGIN) {
+					curX = X_MARGIN;
+					curY += Math.ceil(Utils.getFontHeight(font));
+					
+					for (Text c : word) {
+						c.setX(curX);
+						c.setY(curY);
+						curX += Math.ceil(Utils.getTextWidth(c));
+					}
+				} else {
+					if (!fitsCurLine(curX, Utils.getTextWidth(t))) {
+						curX = X_MARGIN;
+						curY += Math.ceil(Utils.getFontHeight(font));
+					}
+					t.setX(curX);
+					t.setY(curY);
+					
+					curX += Math.ceil(Utils.getTextWidth(t));
+				}
+			}
+		}
+		
+		updateLinePointers();
+	}
+	
+	private void updateLinePointers() {
+		TextBufferIterator iterator = tb.iterator();
+		
+		double prevLine = 0;
+		
+		while (iterator.hasNext()) {
+			BufferNode n = iterator.next();
+			Text t = n.getValue(); 
+			
+			if (t.getY() != prevLine) {
+				tb.addNewLinePointer(n);
+				prevLine = t.getY();
+			}
+		}
+		
+	}
+	
+	private boolean fitsCurLine(double curX, double textWidth) {
+		return curX + textWidth <= getMaxTextX();
+	}
+	
+	private void setCursor() {
+		if (tb.isEmpty() || tb.curIsSentinel()) {
+			cursor.updatePos(X_MARGIN, Y_MARGIN);
+			return;
+		}
+		Text t = tb.getCurPos().getValue();
+		cursor.updatePos(t.getX()+Utils.getTextWidth(t), t.getY());
+	}
+
+	private void handleSpecialKeyEvent(KeyEvent event) {
+		if (event.getCode() == KeyCode.BACK_SPACE) {
+			handleBackspace(event);
+			history.clearRedoHistory();
+		} else if (event.isShortcutDown()) {
+			handleShortCut(event);
+		} else {
+			handleArrowInputs(event);
+		}
+	}
+	
+	private void handleShortCut(KeyEvent event) {
+		KeyCombination incFont = new KeyCodeCombination(KeyCode.ADD, KeyCombination.META_DOWN);
+		KeyCombination incFont60Keeb = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.META_DOWN);
+		KeyCombination decFont = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.META_DOWN);
+		KeyCombination undo = new KeyCodeCombination(KeyCode.Z, KeyCombination.META_DOWN);
+		KeyCombination redo = new KeyCodeCombination(KeyCode.Y, KeyCombination.META_DOWN);
+		KeyCombination copy = new KeyCodeCombination(KeyCode.C, KeyCombination.META_DOWN);
+		KeyCombination paste = new KeyCodeCombination(KeyCode.V, KeyCombination.META_DOWN);
+		KeyCombination cut = new KeyCodeCombination(KeyCode.X, KeyCombination.META_DOWN);
+		KeyCombination save = new KeyCodeCombination(KeyCode.S, KeyCombination.META_DOWN);
+		
+		if (incFont.match(event) || incFont60Keeb.match(event)) {
+			changeFontSize("inc");
+		} else if (decFont.match(event)) {
+			changeFontSize("dec");
+		} else if (undo.match(event)) {
+			handleUndo();
+		} else if (redo.match(event)) {
+			handleRedo();
+		} else if (copy.match(event) || cut.match(event)) {
+			
+		} else if (paste.match(event)) {
+			
+		} else if (save.match(event)) {
+			try {
+				BuildFile.saveFile(file, tb);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void changeFontSize(String incOrDec) {
+		if (incOrDec == "inc") fontSize += 4;
+		else if (incOrDec == "dec" && fontSize > 4) fontSize -= 4;
+		
+		font = new Font(fontName, fontSize);
+		
+		TextBufferIterator iterator = tb.iterator();
+		
+		while (iterator.hasNext()) {
+			Text t = iterator.next().getValue();
+			t.setFont(font);
+		}
+		updateView();
+		setScrollBar();
+		cursor.setHeight(Utils.getFontHeight(font));
+	}
+	
+	private void handleBackspace(KeyEvent event) {
+		if (textRootEmpty()) return;
+		deleteText();
+		Text toDelete = tb.getCurTextObject();
+		updateView();
+		history.recordEdit(EditType.DEL_CHAR, toDelete);
+	}
+	
+	private void deleteText() {
+		if (textRootEmpty()) return;
+		
+		Text toDelete = tb.getCurTextObject();
+		tb.delChar();
+		
+		textRoot.getChildren().remove(toDelete);
+	}
+	
+	private void handleUndo() {
+		if (history.undoHistoryEmpty()) return;
+		HistoryNode action = history.undo();
+		if (action.getType() == EditType.ADD_CHAR) {
+			if (textRootEmpty()) return;
+			deleteText();
+			history.recordUndo(action);
+		} else if (action.getType() == EditType.DEL_CHAR) {
+			Text t = action.getText();
+			addText(t);
+		}
+		updateView();
+	}
+	
+	private void handleRedo() {
+		if (history.redoHistoryEmpty()) return;
+		
+		HistoryNode action = history.redo();
+		
+		if (action.getType() == EditType.ADD_CHAR) {
+			Text t = action.getText();
+			addText(t);
+		} else if (action.getType() == EditType.DEL_CHAR) {
+			deleteText();
+		}
+		updateView();
+ 	}
+	
+	private boolean textRootEmpty() {
+		return textRoot.getChildren().size() == 0;
+	}
+	
+	private void handleArrowInputs(KeyEvent event) {
+		if (event.getCode() == KeyCode.RIGHT) {
+			tb.moveCurPosRight();
+		} else if (event.getCode() == KeyCode.LEFT) {
+			tb.moveCurPosLeft();
+		} else if (event.getCode() == KeyCode.UP) {
+			BufferNode prevNode = tb.getCurPos();
+			int lineNum = getLineNumber(prevNode.getValue().getY());
+			if (lineNum > 0) {
+				BufferNode node = tb.getLinePointer(lineNum-1);
+				while (node.hasNext() 
+						&& node.getNext().getValue().getX() < prevNode.getValue().getX() - X_MARGIN - Utils.getTextWidth(prevNode.getValue()) / 2
+						&& node.getNext().getValue().getY() == node.getValue().getY()) {
+					node = node.getNext();
+				}
+				tb.setCurPos(node);
+			}
+		} else if (event.getCode() == KeyCode.DOWN) {
+			int lineNum = getLineNumber(tb.getCurPos().getValue().getY());
+			if (lineNum < tb.getNumLines() - 1) {
+				BufferNode node = tb.getLinePointer(lineNum+1);
+				while (node.hasNext() 
+						&& node.getNext().getValue().getX() < node.getValue().getX() - X_MARGIN - Utils.getTextWidth(node.getValue()) / 2
+						&& node.getNext().getValue().getY() == node.getValue().getY()) {
+					node = node.getNext();
+				}
+				tb.setCurPos(node);
+			}
+		}
+		setCursor();
+	}
+	
+	private void updateView() {
+		setText();
+		setCursor();
+		setScrollBar();
+		
+	}
+	
+	private void setScrollBar() {
+		setScrollBarVisibility();
+		resizeScrollBar();
+	}
+	
+	private void setScrollBarVisibility() {
+		if (tb.isEmpty() || getTextRootSize() <= scene.getHeight()) {
+			scrollBar.setVisibility(false);
+		} else {
+			scrollBar.setVisibility(true);
+		}
+	}
+	
+	private void resizeScrollBar() {
+		if (!scrollBar.getVisibility()) return;
+		double scrollBarSize = Math.ceil(scene.getHeight() / getTextRootSize() * scene.getHeight());
+		scrollBar.setHeight(scrollBarSize);
+	}
+	
+	ChangeListener<Number> windowResizeListener = new ChangeListener<Number>() {
+		@Override
+		public void changed(ObservableValue<? extends Number> obs, Number oldVal, Number newVal) {
+			if (oldVal.toString() == "NaN") return;
+			resizeWindow();
+			updateView();
+			scrollBar.alignRight(newVal.doubleValue());
+		}
+	};
+	
+	private void resizeWindow() {
+		this.height = scene.getHeight();
+		this.width = scene.getWidth();
+	}
+	
+	
+	private double getMaxTextX() {
+		return this.width - (X_MARGIN*2);
+	}
+	
+	private double getTextRootSize() {
+		if (tb.isEmpty()) return 0;
+		else return Math.ceil(tb.getLast().getValue().getY() + Utils.getFontHeight(font));
+	}
+	
+
+	private int getLineNumber(double y) {
+		int lineNum = (int) y / (int) Utils.getFontHeight(font);
+		if (lineNum >= tb.getNumLines()) return tb.getNumLines()-1;
+		else return lineNum;
+	}
+	
+	
+	
+	
+}

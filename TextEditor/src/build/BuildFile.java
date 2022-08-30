@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import editor.BufferNode;
 import editor.TextBuffer;
 import editor.TextBufferIterator;
 
@@ -39,7 +40,9 @@ public class BuildFile {
 			BufferedWriter out = new BufferedWriter(new FileWriter(file));
 			TextBufferIterator dataIterator = fileData.iterator();
 			while (dataIterator.hasNext()) {
-				out.write(dataIterator.next().getTextValue());
+				BufferNode n = dataIterator.next();
+				if (n.isDummy()) continue;
+				out.write(n.getTextValue());
 			}
 	;		out.close();
 		} catch (IOException e) {

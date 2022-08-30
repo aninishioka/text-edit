@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import java.util.List;
 
+import javafx.geometry.VPos;
 import javafx.scene.text.Text;
 
 public class TextBuffer implements Iterable<BufferNode> {
@@ -13,12 +14,14 @@ public class TextBuffer implements Iterable<BufferNode> {
 	
 	
 	public TextBuffer() {
-		sentinel = new BufferNode(new Text(""));
+		sentinel = new BufferNode(new Text());
 		sentinel.setPrev(sentinel);
 		sentinel.setNext(sentinel);
+		sentinel.setAsSentinel();
 		
 		curPos = sentinel;
 		linePointers  = new ArrayList<>();
+		linePointers.add(sentinel);
 	}
 	
 	public void addChar(Text t) {
@@ -44,7 +47,7 @@ public class TextBuffer implements Iterable<BufferNode> {
 	}
 	
 	public void delChar() {
-		BufferNode cur = getCurPos();
+		/*BufferNode cur = getCurPos();
 		
 		if (cur == sentinel) return;
 		
@@ -53,7 +56,28 @@ public class TextBuffer implements Iterable<BufferNode> {
 		p.setNext(n);
 		n.setPrev(p);
 		
+		setCurPos(p);*/
+		
+		BufferNode cur = getCurPos();
+		BufferNode p = cur.getPrev();
+		
+		if (cur == sentinel) return;
+		
+		delChar(getCurPos());
+		
 		setCurPos(p);
+	}
+	
+	public void delChar(BufferNode bn) {
+		
+		if (bn == sentinel) return;
+		
+		BufferNode p = bn.getPrev();
+		BufferNode n = bn.getNext();
+		p.setNext(n);
+		n.setPrev(p);
+		
+		//setCurPos(p);
 	}
 	
 	public BufferNode getCurPos() {
@@ -97,11 +121,32 @@ public class TextBuffer implements Iterable<BufferNode> {
 	}
 	
 	public void addNewLinePointer(BufferNode n) {
-		linePointers.add(n);
+		if (n.getTextValue().length() == 0) return;
+		if (n.getTextValue().charAt(0) != ' ' && n.getTextValue().charAt(0) != '\r') {
+			BufferNode dummy = new BufferNode(new Text(""), true);
+			Text t = dummy.getValue();
+			t.setTextOrigin(VPos.TOP);
+			t.setX(n.getValue().getX());
+			t.setY(n.getValue().getY());
+			
+			BufferNode prev = n.getPrev();
+			BufferNode next = n;
+			
+			
+			dummy.setPrev(prev);
+			dummy.setNext(next);
+			
+			prev.setNext(dummy);
+			next.setPrev(dummy);
+			linePointers.add(dummy);
+		} else {
+			linePointers.add(n);
+		}
 	}
 	
 	public void clearLinePointers() {
 		linePointers.clear();
+		linePointers.add(sentinel);
 	}
 	
 	public void moveCurPosRight() {
@@ -124,5 +169,10 @@ public class TextBuffer implements Iterable<BufferNode> {
 	
 	public List<BufferNode> getLinePointers() {
 		return this.linePointers;
+	}
+	
+	public BufferNode getLinePointer(int lineNum) {
+		if (isEmpty()) return null;
+		return this.linePointers.get(lineNum);
 	}
 }

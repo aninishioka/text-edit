@@ -1,0 +1,153 @@
+package editor;
+
+import java.util.ArrayList;
+
+import java.util.List;
+
+import javafx.geometry.VPos;
+import javafx.scene.text.Text;
+
+public class TextBuffer implements Iterable<BufferNode> {
+	private BufferNode sentinel;
+	private BufferNode curPos;
+	private List<BufferNode> linePointers;
+	
+	
+	public TextBuffer() {
+		sentinel = new BufferNode(new Text());
+		sentinel.setPrev(sentinel);
+		sentinel.setNext(sentinel);
+		
+		curPos = sentinel;
+		linePointers  = new ArrayList<>();
+	}
+	
+	public void addChar(Text t) {
+		BufferNode newNode = new BufferNode(t);
+		
+		BufferNode cur = getCurPos();
+		
+		BufferNode p = cur;
+		BufferNode n = cur.getNext();
+		
+		
+		newNode.setPrev(p);
+		newNode.setNext(n);
+		
+		cur.setNext(newNode);
+		n.setPrev(newNode);
+		
+		setCurPos(newNode);
+	}
+	
+	public void addChar(char c) {
+		addChar(new Text(""+c));
+	}
+	
+	public void delChar() {
+		BufferNode cur = getCurPos();
+		
+		if (cur == sentinel) return;
+		
+		BufferNode p = cur.getPrev();
+		BufferNode n = cur.getNext();
+		p.setNext(n);
+		n.setPrev(p);
+		
+		setCurPos(p);
+	}
+	
+	public BufferNode getCurPos() {
+		return curPos;
+	}
+	
+	public Text getCurTextObject() {
+		return curPos.getValue();
+	}
+	
+	public void setCurPos(BufferNode node) {
+		curPos = node;
+	}
+	
+	//for testing purposes
+	public BufferNode getSentinel() {
+		return sentinel;
+	}
+	
+	public boolean isEmpty() {
+		return sentinel.getNext() == sentinel;
+	}
+	
+	public BufferNode getFirst() {
+		if (isEmpty()) return null;
+		else return sentinel.getNext();
+	}
+	
+	public BufferNode getLast() {
+		if (isEmpty()) return null;
+		else return sentinel.getPrev();
+	}
+
+	@Override
+	public TextBufferIterator iterator() {
+		return new TextBufferIterator(sentinel);
+	}
+	
+	public int getNumLines() {
+		return linePointers.size();
+	}
+	
+	public void addNewLinePointer(BufferNode n) {
+		if (n.getTextValue().length() == 0) return;
+		if (n.getTextValue().charAt(0) != ' ' && n.getTextValue().charAt(0) != '\r') {
+			BufferNode dummy = new BufferNode(new Text(""), true);
+			Text t = dummy.getValue();
+			t.setTextOrigin(VPos.TOP);
+			t.setX(n.getValue().getX());
+			t.setY(n.getValue().getY());
+			
+			BufferNode prev = n.getPrev();
+			BufferNode next = n;
+			
+			
+			dummy.setPrev(prev);
+			dummy.setNext(next);
+			
+			prev.setNext(dummy);
+			next.setPrev(dummy);
+			linePointers.add(dummy);
+		} else {
+			linePointers.add(n);
+		}
+	}
+	
+	public void clearLinePointers() {
+		linePointers.clear();
+	}
+	
+	public void moveCurPosRight() {
+		if (this.getCurPos() == this.getLast()) return;
+		else this.setCurPos(this.getCurPos().getNext());
+	}
+	
+	public void moveCurPosLeft() {
+		if (this.curIsSentinel()) return;
+		else this.setCurPos(this.getCurPos().getPrev());
+	}
+	
+	public boolean curIsSentinel() {
+		return this.getCurPos() == this.sentinel;
+	}
+	
+	public void setCurToSentinel() {
+		setCurPos(sentinel);
+	}
+	
+	public List<BufferNode> getLinePointers() {
+		return this.linePointers;
+	}
+	
+	public BufferNode getLinePointer(int lineNum) {
+		return this.linePointers.get(lineNum);
+	}
+}
