@@ -473,7 +473,8 @@ public class UserInterface {
 			}
 		}
 		setCursor();
-	}
+		updateWindowPos();
+;	}
 	
 	private void updateView() {
 		setText();
@@ -541,10 +542,11 @@ public class UserInterface {
 			textRoot.setTranslateY(-cursorY);
 			float scrollValue = (float) cursorY / (float) getTextRootSize();
 			scrollBar.setYPos(Math.ceil(scrollValue * scene.getHeight()));
-		} if (cursorY > visibleMaxY) {
-			/*textRoot.setTranslateY(-(cursorY - getTextRootSize()));
-			float scrollValue = (float) (cursorY - getTextRootSize()) / (float) getTextRootSize();
-			scrollBar.setYPos(Math.ceil(scrollValue * getTextRootSize()));*/
+		} if (cursorY+cursor.getHeight() > visibleMaxY) {
+			double delta = cursorY + cursor.getHeight() - visibleMaxY;
+			textRoot.setTranslateY(Math.max(-getTextRootSize() + scene.getHeight(), textRoot.getTranslateY() - delta));
+			float scrollValue = (float) (visibleMinY + delta) / (float) getTextRootSize();
+			scrollBar.setYPos(Math.ceil(scrollValue * scene.getHeight()));
 		}
 	}
 	
