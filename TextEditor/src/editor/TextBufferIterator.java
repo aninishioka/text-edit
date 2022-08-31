@@ -14,7 +14,7 @@ public class TextBufferIterator implements Iterator<BufferNode> {
 	
 	@Override
 	public boolean hasNext() {
-		return next != sentinel;
+		return !next.isSentinel();
 	}
 
 	@Override

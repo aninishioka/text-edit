@@ -24,4 +24,8 @@ public class HistoryNode {
 	public Text getText() {
 		return text;
 	}
+	
+	public Text getTextObject() {
+		return this.text;
+	}
  }

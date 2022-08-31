@@ -42,7 +42,7 @@ public class BuildFile {
 			while (dataIterator.hasNext()) {
 				BufferNode n = dataIterator.next();
 				if (n.isDummy()) continue;
-				out.write(n.getTextValue());
+				out.write(n.getString());
 			}
 	;		out.close();
 		} catch (IOException e) {

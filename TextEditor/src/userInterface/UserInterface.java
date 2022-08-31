@@ -33,6 +33,10 @@ public class UserInterface {
 	final private Scene scene;
 	final private Cursor cursor;
 	final private TextBuffer tb;
+	private final EditHistory history;
+	private final ScrollBar scrollBar;
+	private final String file;
+	private boolean scrollEngaged = false;
 	final private static double INITIAL_WIDTH = 500;
 	final private static int INITIAL_HEIGHT = 500;
 	final private static int INITIAL_FONT_SIZE = 12;
@@ -44,10 +48,6 @@ public class UserInterface {
 	private Font font = new Font(INITIAL_FONT_NAME, INITIAL_FONT_SIZE);
 	private String fontName = INITIAL_FONT_NAME;
 	private int fontSize = INITIAL_FONT_SIZE;
-	private final EditHistory history;
-	private final ScrollBar scrollBar;
-	private boolean scrollEngaged = false;
-	private final String file;
 	
 	
 	public UserInterface(Stage stage, TextBuffer tb, String fileName) {
@@ -133,11 +133,11 @@ public class UserInterface {
 			public void handle(MouseEvent event) {
 				if (scrollEngaged) return;
 				if (!tb.isEmpty()) {
-					int lineNum = getLineNumber(Math.round(event.getY()));
+					int lineNum = getLineNumber(Math.round(event.getY() + -textRoot.getTranslateY()));
 					BufferNode node = tb.getLinePointer(lineNum);
 					while (node.hasNext() 
-							&& node.getNext().getValue().getX() < event.getX() - X_MARGIN - Utils.getTextWidth(node.getValue()) / 2
-							&& node.getNext().getValue().getY() == node.getValue().getY()) {
+							&& node.getNext().getX() < event.getX() - X_MARGIN - Utils.getTextWidth(node.getTextObject()) / 2
+							&& node.getNext().getY() == node.getY()) {
 						node = node.getNext();
 					}
 					tb.setCurPos(node);
@@ -185,7 +185,8 @@ public class UserInterface {
 					scrollBar.setYPos(event.getY());
 					
 					float scrollValue = (float) scrollBar.getY() / (float) scene.getHeight();
-					textRoot.setTranslateY(-Math.ceil(scrollValue * getTextRootSize()));
+					double windowMoveVal = Math.min(-Math.ceil(scrollValue * getTextRootSize()), 0);
+					textRoot.setTranslateY(windowMoveVal);
 				}
 				event.consume();
 			}
@@ -234,7 +235,7 @@ public class UserInterface {
 		TextBufferIterator iterator = tb.iterator();
 		
 		while (iterator.hasNext()) {
-			Text t = iterator.next().getValue();
+			Text t = iterator.next().getTextObject();
 			t.setTextOrigin(VPos.TOP);
 			t.setFont(font);
 			
@@ -254,19 +255,19 @@ public class UserInterface {
 		
 		while (iterator.hasNext()) {
 			BufferNode bn = iterator.next();
-			Text t = bn.getValue();
+			Text t = bn.getTextObject();
 			if (bn.isDummy()) {
 				tb.delChar(bn);
 				continue;
 			}
 			
-			if (t.getText().charAt(0) == ' ' || t.getText().charAt(0) == '\r') {
+			if (bn.getString().charAt(0) == ' ' || bn.getString().charAt(0) == '\r') {
 				
-				if (t.getText().charAt(0) == ' ') {
+				if (bn.getString().charAt(0) == ' ') {
 					t.setX(curX);
 					t.setY(curY);
 					curX += Math.ceil(Utils.getTextWidth(t));
-				} else if (t.getText().charAt(0) == '\r') {
+				} else if (bn.getString().charAt(0) == '\r') {
 					curX = X_MARGIN;
 					curY += Utils.getFontHeight(font);
 					t.setX(curX);
@@ -309,7 +310,7 @@ public class UserInterface {
 		
 		while (iterator.hasNext()) {
 			BufferNode n = iterator.next();
-			Text t = n.getValue(); 
+			Text t = n.getTextObject(); 
 			
 			if (t.getY() != prevLine) {
 				tb.addNewLinePointer(n);
@@ -328,7 +329,7 @@ public class UserInterface {
 			cursor.updatePos(X_MARGIN, Y_MARGIN);
 			return;
 		}
-		Text t = tb.getCurPos().getValue();
+		Text t = tb.getCurPos().getTextObject();
 		cursor.updatePos(t.getX()+Utils.getTextWidth(t), t.getY());
 	}
 
@@ -384,7 +385,7 @@ public class UserInterface {
 		TextBufferIterator iterator = tb.iterator();
 		
 		while (iterator.hasNext()) {
-			Text t = iterator.next().getValue();
+			Text t = iterator.next().getTextObject();
 			t.setFont(font);
 		}
 		updateView();
@@ -417,7 +418,7 @@ public class UserInterface {
 			deleteText();
 			history.recordUndo(action);
 		} else if (action.getType() == EditType.DEL_CHAR) {
-			Text t = action.getText();
+			Text t = action.getTextObject();
 			addText(t);
 		}
 		updateView();
@@ -429,7 +430,7 @@ public class UserInterface {
 		HistoryNode action = history.redo();
 		
 		if (action.getType() == EditType.ADD_CHAR) {
-			Text t = action.getText();
+			Text t = action.getTextObject();
 			addText(t);
 		} else if (action.getType() == EditType.DEL_CHAR) {
 			deleteText();
@@ -448,24 +449,24 @@ public class UserInterface {
 			tb.moveCurPosLeft();
 		} else if (event.getCode() == KeyCode.UP) {
 			BufferNode prevNode = tb.getCurPos();
-			int lineNum = getLineNumber(prevNode.getValue().getY());
+			int lineNum = getLineNumber(prevNode.getY());
 			if (lineNum > 0) {
 				BufferNode node = tb.getLinePointer(lineNum-1);
 				while (node.hasNext() 
-						&& node.getNext().getValue().getX() < prevNode.getValue().getX() + Utils.getTextWidth(prevNode.getValue()) / 2
-						&& node.getNext().getValue().getY() == node.getValue().getY()) {
+						&& node.getNext().getX() < prevNode.getX() + Utils.getTextWidth(prevNode.getTextObject()) / 2
+						&& node.getNext().getY() == node.getY()) {
 					node = node.getNext();
 				}
 				tb.setCurPos(node);
 			}
 		} else if (event.getCode() == KeyCode.DOWN) {
 			BufferNode prevNode = tb.getCurPos();
-			int lineNum = getLineNumber(prevNode.getValue().getY());
+			int lineNum = getLineNumber(prevNode.getY());
 			if (lineNum < tb.getNumLines() - 1) {
 				BufferNode node = tb.getLinePointer(lineNum+1);
 				while (node.hasNext() 
-						&& node.getNext().getValue().getX() < prevNode.getValue().getX() + Utils.getTextWidth(node.getValue()) / 2
-						&& node.getNext().getValue().getY() == node.getValue().getY()) {
+						&& node.getNext().getX() < prevNode.getX() + Utils.getTextWidth(node.getTextObject()) / 2
+						&& node.getNext().getY() == node.getY()) {
 					node = node.getNext();
 				}
 				tb.setCurPos(node);
@@ -478,7 +479,7 @@ public class UserInterface {
 		setText();
 		setCursor();
 		setScrollBar();
-		
+		updateWindowPos();		
 	}
 	
 	private void setScrollBar() {
@@ -487,7 +488,7 @@ public class UserInterface {
 	}
 	
 	private void setScrollBarVisibility() {
-		if (tb.isEmpty() || getTextRootSize() <= scene.getHeight()) {
+		if (tb.isEmpty() || (getTextRootSize() <= scene.getHeight() && textRoot.getTranslateY() >= 0)) {
 			scrollBar.setVisibility(false);
 		} else {
 			scrollBar.setVisibility(true);
@@ -522,7 +523,7 @@ public class UserInterface {
 	
 	private double getTextRootSize() {
 		if (tb.isEmpty()) return 0;
-		else return Math.ceil(tb.getLast().getValue().getY() + Utils.getFontHeight(font));
+		else return Math.ceil(tb.getLast().getY() + Utils.getFontHeight(font));
 	}
 	
 
@@ -532,7 +533,20 @@ public class UserInterface {
 		else return lineNum;
 	}
 	
-	
+	private void updateWindowPos() {
+		double cursorY = cursor.getYPos();
+		double visibleMinY = -textRoot.getTranslateY();
+		double visibleMaxY = visibleMinY + scene.getHeight();
+		if (cursorY < visibleMinY) {
+			textRoot.setTranslateY(-cursorY);
+			float scrollValue = (float) cursorY / (float) getTextRootSize();
+			scrollBar.setYPos(Math.ceil(scrollValue * scene.getHeight()));
+		} if (cursorY > visibleMaxY) {
+			/*textRoot.setTranslateY(-(cursorY - getTextRootSize()));
+			float scrollValue = (float) (cursorY - getTextRootSize()) / (float) getTextRootSize();
+			scrollBar.setYPos(Math.ceil(scrollValue * getTextRootSize()));*/
+		}
+	}
 	
 	
 }

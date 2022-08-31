@@ -9,16 +9,14 @@ import javafx.util.Duration;
 
 public class Cursor {
 	public final Rectangle cursor;
-	public final static int width = 1;
+	public final static int WIDTH = 1;
 	public double height;
-	public final double LEFT_RIGHT_MARGIN = 0;
-	public final double TOP_BOTTOM_MARGIN = 0;
-	public double xPos = LEFT_RIGHT_MARGIN;
-	public double yPos = TOP_BOTTOM_MARGIN;
+	public final double INIT_X = 0;
+	public final double INIT_Y = 0;
 
 	
 	public Cursor(double height) {
-		cursor = new Rectangle(width, height);
+		cursor = new Rectangle(WIDTH, height);
 		this.height = height;
 		
 		initPos();
@@ -26,8 +24,8 @@ public class Cursor {
 	}
 	
 	private void initPos() {
-		cursor.setX(LEFT_RIGHT_MARGIN);
-		cursor.setY(TOP_BOTTOM_MARGIN);
+		cursor.setX(INIT_X);
+		cursor.setY(INIT_Y);
 	}
 	
 	private void initAnimation() {
@@ -53,23 +51,16 @@ public class Cursor {
 	}
 	
 	public double getXPos() {
-		return xPos;
+		return cursor.getTranslateX();
 	}
 	
 	public double getYPos() {
-		return yPos;
-	}
-	
-	public void setPos(double x, double y) {
-		this.xPos = x;
-		this.yPos = y;
+		return cursor.getTranslateY();
 	}
 	
 	public void updatePos(double x, double y) {
 		cursor.setTranslateX(x);
 		cursor.setTranslateY(y);
-		
-		setPos(x, y);
 	}
 	
 	public double getHeight() {

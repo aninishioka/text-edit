@@ -24,8 +24,16 @@ public class BufferNode {
 			this.isSentinel = true;
 		}
 		
-		public Text getValue() {
-			return value;
+		public Text getTextObject() {
+			return this.value;
+		}
+		
+		public double getX() {
+			return this.value.getX();
+		}
+		
+		public double getY() {
+			return this.value.getY();
 		}
 		
 		public BufferNode getPrev() {
@@ -48,11 +56,15 @@ public class BufferNode {
 			next = n;
 		}
 		
-		public String getTextValue() {
-			return string;
+		public String getString() {
+			return this.value.getText();
 		}
 		
 		public boolean isDummy() {
 			return this.isDummy;
+		}
+		
+		public boolean isSentinel() {
+			return this.isSentinel;
 		}
 	}

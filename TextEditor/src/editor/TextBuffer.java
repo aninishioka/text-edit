@@ -24,21 +24,19 @@ public class TextBuffer implements Iterable<BufferNode> {
 		linePointers.add(sentinel);
 	}
 	
+	public void addNode(BufferNode newNode, BufferNode prev) {
+		BufferNode next = prev.getNext();
+		
+		newNode.setPrev(prev);
+		newNode.setNext(next);
+		
+		prev.setNext(newNode);
+		next.setPrev(newNode);
+	}
+	
 	public void addChar(Text t) {
 		BufferNode newNode = new BufferNode(t);
-		
-		BufferNode cur = getCurPos();
-		
-		BufferNode p = cur;
-		BufferNode n = cur.getNext();
-		
-		
-		newNode.setPrev(p);
-		newNode.setNext(n);
-		
-		cur.setNext(newNode);
-		n.setPrev(newNode);
-		
+		addNode(newNode, getCurPos());
 		setCurPos(newNode);
 	}
 	
@@ -47,40 +45,17 @@ public class TextBuffer implements Iterable<BufferNode> {
 	}
 	
 	public void delChar() {
-		/*BufferNode cur = getCurPos();
-		
-		if (cur == sentinel) return;
-		
-		BufferNode p = cur.getPrev();
-		BufferNode n = cur.getNext();
-		p.setNext(n);
-		n.setPrev(p);
-		
-		setCurPos(p);*/
-		
 		BufferNode cur = getCurPos();
 		BufferNode p = cur.getPrev();
-		
-		if (cur == sentinel) return;
-		
-		delChar(getCurPos());
-		
+		delChar(cur);
 		setCurPos(p);
 	}
 	
 	public void delChar(BufferNode bn) {
-		
-		if (bn == sentinel) return;
-		
 		BufferNode p = bn.getPrev();
 		BufferNode n = bn.getNext();
 		p.setNext(n);
 		n.setPrev(p);
-		
-		//if (bn.isDummy()) delChar(p);
-		
-		//if (p.isDummy()) delChar(p);
-		//setCurPos(p);
 	}
 	
 	public BufferNode getCurPos() {
@@ -88,7 +63,7 @@ public class TextBuffer implements Iterable<BufferNode> {
 	}
 	
 	public Text getCurTextObject() {
-		return curPos.getValue();
+		return curPos.getTextObject();
 	}
 	
 	public void setCurPos(BufferNode node) {
@@ -124,23 +99,17 @@ public class TextBuffer implements Iterable<BufferNode> {
 	}
 	
 	public void addNewLinePointer(BufferNode n) {
-		if (n.getTextValue().length() == 0) return;
-		if (n.getTextValue().charAt(0) != ' ' && n.getTextValue().charAt(0) != '\r') {
+		if (n.getString().length() == 0) return;
+		if (n.getString().charAt(0) != ' ' && n.getString().charAt(0) != '\r') {
 			BufferNode dummy = new BufferNode(new Text(""), true);
-			Text t = dummy.getValue();
+			
+			Text t = dummy.getTextObject();
 			t.setTextOrigin(VPos.TOP);
-			t.setX(n.getValue().getX());
-			t.setY(n.getValue().getY());
+			t.setX(n.getX());
+			t.setY(n.getY());
 			
-			BufferNode prev = n.getPrev();
-			BufferNode next = n;
-			
-			
-			dummy.setPrev(prev);
-			dummy.setNext(next);
-			
-			prev.setNext(dummy);
-			next.setPrev(dummy);
+			addNode(dummy, n.getPrev());
+		
 			linePointers.add(dummy);
 		} else {
 			linePointers.add(n);
