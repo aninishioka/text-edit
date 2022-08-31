@@ -77,6 +77,9 @@ public class TextBuffer implements Iterable<BufferNode> {
 		p.setNext(n);
 		n.setPrev(p);
 		
+		//if (bn.isDummy()) delChar(p);
+		
+		//if (p.isDummy()) delChar(p);
 		//setCurPos(p);
 	}
 	

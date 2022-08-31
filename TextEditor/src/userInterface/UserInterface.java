@@ -394,8 +394,8 @@ public class UserInterface {
 	
 	private void handleBackspace(KeyEvent event) {
 		if (textRootEmpty()) return;
-		deleteText();
 		Text toDelete = tb.getCurTextObject();
+		deleteText();
 		updateView();
 		history.recordEdit(EditType.DEL_CHAR, toDelete);
 	}
